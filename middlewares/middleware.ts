@@ -5,7 +5,7 @@ import session from 'express-session';
 import passport from '@/utils/passport-config';
 import cors from 'cors';
 
-const appMiddlewares = (app: express.Application) => {
+const initializeMiddlewares = (app: express.Application) => {
     app.use(express.json());
     app.use(cookieParser());
 
@@ -29,4 +29,4 @@ const appMiddlewares = (app: express.Application) => {
     );
 };
 
-export default appMiddlewares;
+export default initializeMiddlewares;

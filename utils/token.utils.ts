@@ -56,25 +56,25 @@ export const generateRefreshToken = (userID: any) => {
 
 export const tcGenerateAccessRefreshToken = async (id: any) => {
     try {
-
         const turfCaptain = await getTcById(id)
 
         const accessToken = tcGenerateAccessToken(turfCaptain);
+
         const refreshToken = tcGenerateRefreshToken(turfCaptain?.id)
 
         await db.turfcaptain.update({ where: { id }, data: { refreshToken } })
         return { accessToken, refreshToken }
 
     } catch (error) {
-
+        console.log(error)
     }
 }
 
-export const tcGenerateAccessToken = (user: any) => {
+export const tcGenerateAccessToken = (tc: any) => {
     const accessToken = jwt.sign(
         {
-            userId: user?.id,
-            email: user?.email
+            tcId: tc?.id,
+            email: tc?.email
             // username: user?.username,
             // fullname: user?.fullName
         },
@@ -87,16 +87,16 @@ export const tcGenerateAccessToken = (user: any) => {
     return accessToken
 }
 
-export const tcGenerateRefreshToken = (userID: any) => {
+export const tcGenerateRefreshToken = (tcId: any) => {
 
     const refreshToken = jwt.sign(
         {
-            userId: userID,
+            userId: tcId,
         },
         process.env.TC_REFRESH_TOKEN_SECRET as string,
 
         {
-            expiresIn: process.env.TC_REFRESH_TOKEN_SECRET
+            expiresIn: process.env.TC_REFRESH_TOKEN_EXPIRY
         })
 
     console.log("Token refreshed");

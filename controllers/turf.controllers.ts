@@ -11,21 +11,21 @@ import { Turfcaptain } from "@prisma/client";
 
 export const signinTc = async (req: Request, res: Response) => {
     try {
-
+        // TODO: IMPLEMENT ZOD VALIDATION HERE
         const { username, email, password } = req.body;
 
         if (!username && !email) {
             return res.status(400).json({ message: "Username or email is required" })
         }
 
-        const foundTc = await db.turfcaptain.findFirst({ where: username }) as Turfcaptain
+        const foundTc = await db.turfcaptain.findFirst({ where: { username } }) as Turfcaptain
         const isPasswordCorrect = await bcrypt.compare(password, foundTc?.password as string)
 
         if (!isPasswordCorrect) {
             return res.status(401).json({ message: "You've entered wrong password" })
         }
 
-        const { accessToken, refreshToken } = await tcGenerateAccessRefreshToken(foundTc.id) as any
+        const { accessToken, refreshToken } = await tcGenerateAccessRefreshToken(foundTc?.id) as any
 
         return res.status(200)
             .cookie("accessToken", accessToken, options)
@@ -34,8 +34,8 @@ export const signinTc = async (req: Request, res: Response) => {
 
 
     } catch (error) {
+        console.log(error);
         return res.status(200).json(error)
-
     }
 }
 
@@ -46,11 +46,11 @@ export const signUpTc = async (req: Request, res: Response) => {
         const existedTc = await getTcByEmail(email)
 
         if (existedTc) {
-            return res.status(409).send("Turf Captain already exists");
+            return res.status(409).json({ message: "Turf Captain already exists" });
         }
 
-        else {
 
+        else {
             const hashedPassword = await bcrypt.hash(password, 10)
 
             const newTurfCaptain = await db.turfcaptain.create({
@@ -66,7 +66,7 @@ export const signUpTc = async (req: Request, res: Response) => {
                 .json({ message: "Sucess", user: newTurfCaptain })
         }
     } catch (error) {
-        return res.status(400).json({ message: 'Validation failed', errors: error });
+        return res.status(400).json({ message: 'Validation failed', error });
     }
 }
 
@@ -122,5 +122,40 @@ export const tcGoogleAuth = async (req: AuthenticatedRequest, res: Response) => 
 
     catch (error) {
         return res.status(401).json(error)
+    }
+}
+
+export const getAllTcs = async (req: Request, res: Response) => {
+    try {
+        const tcs = await db.turfcaptain.findMany()
+        return res.status(200).json(tcs)
+    }
+
+    catch (error) {
+        console.log(error)
+    }
+}
+
+export const editTurf = async (req: Request, res: Response) => {
+    try {
+        const tcId = req.params.id
+        const updatedFields = req.body;
+
+        if (!updatedFields || Object.keys(updatedFields).length === 0) {
+            return res.status(400).json({ error: 'Bad Request - No valid fields to update provided' });
+        }
+
+        const updatedTc = await db.turfcaptain.update({ where: { id: tcId }, data: updatedFields })
+
+        if (!updatedTc) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        return res.status(200).json(updatedTc)
+    }
+
+    catch (error) {
+        console.log(error)
+        res.status(500).json({ message: 'Internal Server Error', error });
     }
 }
