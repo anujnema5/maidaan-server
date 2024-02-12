@@ -1,6 +1,6 @@
 import { db } from "@/db"
 import jwt from 'jsonwebtoken'
-import { getUserById } from "@/utils/user.utils"
+import { getTcById, getUserById } from "@/utils/user.utils"
 
 export const generateAccessRefreshToken = async (id: any) => {
     try {
@@ -10,7 +10,7 @@ export const generateAccessRefreshToken = async (id: any) => {
         const accessToken = generateAccessToken(user);
         const refreshToken = generateRefreshToken(user?.id)
 
-        await db.user.update({where: {id},data: { refreshToken }})
+        await db.user.update({ where: { id }, data: { refreshToken } })
         return { accessToken, refreshToken }
 
 
@@ -53,6 +53,58 @@ export const generateRefreshToken = (userID: any) => {
 
     return refreshToken
 }
+
+export const tcGenerateAccessRefreshToken = async (id: any) => {
+    try {
+
+        const turfCaptain = await getTcById(id)
+
+        const accessToken = tcGenerateAccessToken(turfCaptain);
+        const refreshToken = tcGenerateRefreshToken(turfCaptain?.id)
+
+        await db.turfcaptain.update({ where: { id }, data: { refreshToken } })
+        return { accessToken, refreshToken }
+
+    } catch (error) {
+
+    }
+}
+
+export const tcGenerateAccessToken = (user: any) => {
+    const accessToken = jwt.sign(
+        {
+            userId: user?.id,
+            email: user?.email
+            // username: user?.username,
+            // fullname: user?.fullName
+        },
+        process.env.TC_ACCESS_TOKEN_SECRET as string,
+
+        {
+            expiresIn: process.env.TC_ACCESS_TOKEN_EXPIRY
+        })
+
+    return accessToken
+}
+
+export const tcGenerateRefreshToken = (userID: any) => {
+
+    const refreshToken = jwt.sign(
+        {
+            userId: userID,
+        },
+        process.env.TC_REFRESH_TOKEN_SECRET as string,
+
+        {
+            expiresIn: process.env.TC_REFRESH_TOKEN_SECRET
+        })
+
+    console.log("Token refreshed");
+
+
+    return refreshToken
+}
+
 
 
 // export const 

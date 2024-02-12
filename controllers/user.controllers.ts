@@ -73,7 +73,7 @@ export const signUpUser = async (req: Request, res: Response) => {
     }
 }
 
-export const accessRefershToken = async (req: Request, res: Response) => {
+export const userAccessRefershToken = async (req: Request, res: Response) => {
     const incomingrefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
     if (!incomingrefreshToken) {

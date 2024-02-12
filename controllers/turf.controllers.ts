@@ -1,11 +1,126 @@
-export const signIn = () => {
+import bcrypt from "bcrypt"
+import { Request, Response } from "express"
+import { db } from "@/db/index";
+import jwt from 'jsonwebtoken'
+import { tcGenerateAccessRefreshToken } from "@/utils/token.utils";
+import 'dotenv/config';
+import { getTcByEmail, getTcById } from "@/utils/user.utils";
+import { AuthenticatedRequest } from "@/static/types";
+import { options } from "@/static/cookie.options";
+import { Turfcaptain } from "@prisma/client";
 
+export const signinTc = async (req: Request, res: Response) => {
+    try {
+
+        const { username, email, password } = req.body;
+
+        if (!username && !email) {
+            return res.status(400).json({ message: "Username or email is required" })
+        }
+
+        const foundTc = await db.turfcaptain.findFirst({ where: username }) as Turfcaptain
+        const isPasswordCorrect = await bcrypt.compare(password, foundTc?.password as string)
+
+        if (!isPasswordCorrect) {
+            return res.status(401).json({ message: "You've entered wrong password" })
+        }
+
+        const { accessToken, refreshToken } = await tcGenerateAccessRefreshToken(foundTc.id) as any
+
+        return res.status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json({ accessToken })
+
+
+    } catch (error) {
+        return res.status(200).json(error)
+
+    }
 }
 
-export const signUp = () => {
+export const signUpTc = async (req: Request, res: Response) => {
+    try {
+        const { fullName, username, email, password, phoneNumber } = req.body
 
+        const existedTc = await getTcByEmail(email)
+
+        if (existedTc) {
+            return res.status(409).send("Turf Captain already exists");
+        }
+
+        else {
+
+            const hashedPassword = await bcrypt.hash(password, 10)
+
+            const newTurfCaptain = await db.turfcaptain.create({
+                data: { username, fullName, phoneNumber, email, password: hashedPassword }
+            })
+
+            const { accessToken, refreshToken } = await tcGenerateAccessRefreshToken(newTurfCaptain.id) as any
+
+
+            return res.status(200)
+                .cookie("accessToken", accessToken, options)
+                .cookie("refreshToken", refreshToken, options)
+                .json({ message: "Sucess", user: newTurfCaptain })
+        }
+    } catch (error) {
+        return res.status(400).json({ message: 'Validation failed', errors: error });
+    }
 }
 
-export const googleAuth = () => {
-    
+export const tcAccessRefershToken = async (req: Request, res: Response) => {
+    const incomingrefreshToken = req.cookies.refreshToken || req.body.refreshToken
+
+    if (!incomingrefreshToken) {
+        return res.status(401).json({ message: "No refresh token found" })
+    }
+
+    try {
+
+        const decodedToken = jwt.verify(
+            incomingrefreshToken,
+            process.env.TC_REFRESH_TOKEN_SECRET as string
+        ) as any
+
+        if (!decodedToken) {
+            return res.status(401).json({ message: "non-valid refresh token" })
+        }
+
+        const foundTc = await db.turfcaptain.findFirst({
+            where: decodedToken.userId,
+            select: { id: true, password: false, refreshToken: true }
+        })
+
+        if (foundTc?.refreshToken !== incomingrefreshToken) {
+            return res.status(401).json({ message: "Token expired or already been used" })
+        }
+
+        const { accessToken, refreshToken } = await tcGenerateAccessRefreshToken(foundTc?.id) as any
+
+        return res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json({ accessToken, refreshToken: refreshToken, message: "Accesstoken refreshed" })
+
+    } catch (error) {
+        return res.status(401).json({ message: "non-valid refresh token", error })
+    }
+}
+
+export const tcGoogleAuth = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { accessToken, refreshToken } = await tcGenerateAccessRefreshToken(req.tc?.id) as any
+
+        return res.status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json({ accessToken })
+    }
+
+    catch (error) {
+        return res.status(401).json(error)
+    }
 }
