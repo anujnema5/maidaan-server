@@ -2,12 +2,13 @@ import bcrypt from "bcrypt"
 import { Request, Response } from "express"
 import { db } from "@/db/index";
 import jwt from 'jsonwebtoken'
-import { generateAccessRefreshToken } from "@/utils/token.utils";
+import { generateAccessRefreshToken } from "@/utils/auth/token.utils";
 import 'dotenv/config';
-import { getUserByEmail } from "@/utils/user.utils";
+import { getUserByEmail } from "@/utils/api/user.utils";
 import { AuthenticatedRequest } from "@/static/types";
 import { options } from "@/static/cookie.options";
 import { User } from "@prisma/client";
+import { getAllEntities } from "@/utils/api/api.utils";
 
 export const signinUser = async (req: Request, res: Response) => {
     try {
@@ -75,7 +76,7 @@ export const signUpUser = async (req: Request, res: Response) => {
 
 export const userAccessRefershToken = async (req: Request, res: Response) => {
     const incomingrefreshToken = req.cookies.refreshToken || req.body.refreshToken
-    
+
     if (!incomingrefreshToken) {
         return res.status(401).json({ message: "No refresh token found" })
     }
@@ -129,12 +130,5 @@ export const googleAuth = async (req: AuthenticatedRequest, res: Response) => {
 }
 
 export const getAllusers = async (req: Request, res: Response) => {
-    try {
-        const users = await db.user.findMany()
-        return res.status(200).json(users)
-    }
-
-    catch (error) {
-        console.log(error)
-    }
+    await getAllEntities(db.user, res)
 }

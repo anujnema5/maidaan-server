@@ -2,12 +2,13 @@ import bcrypt from "bcrypt"
 import { Request, Response } from "express"
 import { db } from "@/db/index";
 import jwt from 'jsonwebtoken'
-import { generateAccessRefreshToken } from "@/utils/token.utils";
+import { generateAccessRefreshToken } from "@/utils/auth/token.utils";
 import 'dotenv/config';
-import { getTcByEmail, getTcById } from "@/utils/user.utils";
+import { getTcByEmail, getTcById } from "@/utils/api/user.utils";
 import { AuthenticatedRequest } from "@/static/types";
 import { options } from "@/static/cookie.options";
 import { Turfcaptain } from "@prisma/client";
+import { getAllEntities } from "@/utils/api/api.utils";
 
 export const signinTc = async (req: Request, res: Response) => {
     try {
@@ -126,14 +127,7 @@ export const tcGoogleAuth = async (req: AuthenticatedRequest, res: Response) => 
 }
 
 export const getAllTcs = async (req: Request, res: Response) => {
-    try {
-        const tcs = await db.turfcaptain.findMany()
-        return res.status(200).json(tcs)
-    }
-
-    catch (error) {
-        console.log(error)
-    }
+    await getAllEntities(db.turfcaptain, res)
 }
 
 export const editTurf = async (req: Request, res: Response) => {
