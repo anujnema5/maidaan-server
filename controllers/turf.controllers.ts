@@ -2,7 +2,7 @@ import bcrypt from "bcrypt"
 import { Request, Response } from "express"
 import { db } from "@/db/index";
 import jwt from 'jsonwebtoken'
-import { tcGenerateAccessRefreshToken } from "@/utils/token.utils";
+import { generateAccessRefreshToken } from "@/utils/token.utils";
 import 'dotenv/config';
 import { getTcByEmail, getTcById } from "@/utils/user.utils";
 import { AuthenticatedRequest } from "@/static/types";
@@ -25,7 +25,7 @@ export const signinTc = async (req: Request, res: Response) => {
             return res.status(401).json({ message: "You've entered wrong password" })
         }
 
-        const { accessToken, refreshToken } = await tcGenerateAccessRefreshToken(foundTc?.id) as any
+        const { accessToken, refreshToken } = await generateAccessRefreshToken(foundTc?.id, true) as any
 
         return res.status(200)
             .cookie("accessToken", accessToken, options)
@@ -57,7 +57,7 @@ export const signUpTc = async (req: Request, res: Response) => {
                 data: { username, fullName, phoneNumber, email, password: hashedPassword }
             })
 
-            const { accessToken, refreshToken } = await tcGenerateAccessRefreshToken(newTurfCaptain.id) as any
+            const { accessToken, refreshToken } = await generateAccessRefreshToken(newTurfCaptain.id, true) as any
 
 
             return res.status(200)
@@ -97,7 +97,7 @@ export const tcAccessRefershToken = async (req: Request, res: Response) => {
             return res.status(401).json({ message: "Token expired or already been used" })
         }
 
-        const { accessToken, refreshToken } = await tcGenerateAccessRefreshToken(foundTc?.id) as any
+        const { accessToken, refreshToken } = await generateAccessRefreshToken(foundTc?.id, true) as any
 
         return res
             .status(200)
@@ -112,7 +112,7 @@ export const tcAccessRefershToken = async (req: Request, res: Response) => {
 
 export const tcGoogleAuth = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const { accessToken, refreshToken } = await tcGenerateAccessRefreshToken(req.tc?.id) as any
+        const { accessToken, refreshToken } = await generateAccessRefreshToken(req.tc?.id, true) as any
 
         return res.status(200)
             .cookie("accessToken", accessToken, options)
