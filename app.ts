@@ -11,8 +11,8 @@ initializeMiddlewares(app)
 import userRoutes from '@/routes/user.routes'
 import turfRoutes from '@/routes/turf.routes'
 
-app.use('/v1/auth/user', userRoutes)
-app.use('/v1/auth/turf', turfRoutes)
+app.use('/v1/user', userRoutes)
+app.use('/v1/turf', turfRoutes)
 
 // SAMPLE API TEST
 app.get('/', (req, res) => {

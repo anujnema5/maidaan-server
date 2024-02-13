@@ -7,6 +7,7 @@ const generateToken = (data: any, secret: string, expiry: string) =>
 
 export const generateAccessRefreshToken = async (id: any, isTurfCaptain: boolean = false) => {
     try {
+        
         const entity = isTurfCaptain ? await getTcById(id) : await getUserById(id);
         const updateFunction = isTurfCaptain ? (db.turfcaptain.update as any) : (db.user.update as any);
 

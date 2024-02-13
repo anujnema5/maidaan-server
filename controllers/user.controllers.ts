@@ -26,6 +26,7 @@ export const signinUser = async (req: Request, res: Response) => {
             return res.status(401).json({ message: "You've entered wrong password" })
         }
 
+        // IMPLEMENT SAME FUNCTION FOR TURF CAPTAIN WITH THIS FUNCTION ONLY
         const { accessToken, refreshToken } = await generateAccessRefreshToken(foundUser.id) as any
 
 
@@ -89,7 +90,9 @@ export const userAccessRefershToken = async (req: Request, res: Response) => {
         }
 
         const foundUser = await db.user.findFirst({
-            where: decodedToken.userId,
+            where: {
+                id: decodedToken.userId
+            },
             select: { id: true, password: false, refreshToken: true }
         })
 
@@ -103,7 +106,7 @@ export const userAccessRefershToken = async (req: Request, res: Response) => {
             .status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
-            .json({ accessToken, refreshToken: refreshToken, message: "Accesstoken refreshed" })
+            .json({ accessToken, message: "Accesstoken refreshed" })
 
     } catch (error) {
         return res.status(401).json({ message: "non-valid refresh token", error })

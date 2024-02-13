@@ -19,7 +19,9 @@ export const getTcByEmail = async (email: string) => {
 
 const getUserByField = async (entity: 'user' | 'turfcaptain', field: string, value: string) => {
     try {
-        const result = await (db[entity].findFirst as any)({ where: { [field]: value } });
+        const result = await (db[entity].findFirst as any)({
+            where: { [field]: value }
+        });
         return result;
     } catch (error) {
         console.log(error);
