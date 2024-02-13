@@ -12,8 +12,7 @@ export const verifyUser = async (req: AuthenticatedRequest, res: Response, next:
 
     try {
         const decodedToken = verify(token, process.env.ACCESS_TOKEN_SECRET as string) as any
-        const user = getUserById(decodedToken.id)
-
+        const user = await getUserById(decodedToken.id)
         req.user = user
         next();
 

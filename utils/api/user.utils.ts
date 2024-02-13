@@ -28,3 +28,40 @@ const getUserByField = async (entity: 'user' | 'turfcaptain', field: string, val
         return null;
     }
 };
+
+export const isOverLappingBookings = async (upcomingBookingStartTime: any, upcomingBookingEndTime: any) => {
+    try {
+        const overlappingBookings = await db.booking.findMany({
+            where: {
+                OR: [
+                    {
+                        AND: [
+                            { startTime: { lte: upcomingBookingStartTime } },
+                            { endTime: { gt: upcomingBookingStartTime } },
+                        ],
+                    },
+                    {
+                        AND: [
+                            { startTime: { lt: upcomingBookingEndTime } },
+                            { endTime: { gte: upcomingBookingEndTime } },
+                        ],
+                    },
+                    {
+                        AND: [
+                            { startTime: { gte: upcomingBookingStartTime } },
+                            { endTime: { lte: upcomingBookingEndTime } },
+                        ],
+                    },
+                ],
+            },
+        });
+
+        if (overlappingBookings.length > 0) {
+            return false
+        }
+
+        return true
+    } catch (error) {
+        console.log(error)
+    }
+}

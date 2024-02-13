@@ -130,15 +130,7 @@ export const tcGoogleAuth = async (req: AuthenticatedRequest, res: Response) => 
 }
 
 export const getAllTcs = async (req: Request, res: Response) => {
-    try {
-        const getTCsWithTurf = await db.turfcaptain.findMany({
-            include: {turfs: true}
-        })
-
-        return res.status(200).json(getTCsWithTurf)
-    } catch (error) {
-        
-    }
+    await getAllEntities(db.turfcaptain, res)
 }
 
 export const editc = async (req: Request, res: Response) => {

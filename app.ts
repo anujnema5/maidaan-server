@@ -10,9 +10,11 @@ initializeMiddlewares(app)
 // ROUTES IMPORT
 import userRoutes from '@/routes/user.routes'
 import turfRoutes from '@/routes/turf.routes'
+import { getAllBookings } from "./controllers/booking.controllers";
 
 app.use('/v1/user', userRoutes)
 app.use('/v1/turf', turfRoutes)
+app.get('/v1/bookings', getAllBookings)
 
 // SAMPLE API TEST
 app.get('/', (req, res) => {

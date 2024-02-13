@@ -4,7 +4,7 @@ import { db } from "@/db/index";
 import jwt from 'jsonwebtoken'
 import { generateAccessRefreshToken } from "@/utils/auth/token.utils";
 import 'dotenv/config';
-import { getUserByEmail } from "@/utils/api/user.utils";
+import { getUserByEmail, isOverLappingBookings } from "@/utils/api/user.utils";
 import { AuthenticatedRequest } from "@/static/types";
 import { options } from "@/static/cookie.options";
 import { User } from "@prisma/client";
@@ -134,4 +134,67 @@ export const googleAuth = async (req: AuthenticatedRequest, res: Response) => {
 
 export const getAllusers = async (req: Request, res: Response) => {
     await getAllEntities(db.user, res)
+}
+
+export const createBooking = async (req: AuthenticatedRequest, res: Response) => {
+    const { turfId, bookingDate, startTime, endTime, slots, totalPlayer } = req.body
+    const user = await req.user;
+
+    console.log(user)
+
+    try {
+        const turf = await db.turf.findUnique({ where: { id: turfId },  })
+
+        if (!turf) {
+            res.status(401).json({ message: "Turf with this ID does not exist, Please make a turf" })
+        }
+
+        // IMPLEMENTED A CODE THAT CHECKS WEATHER A BOOKING EXIST IN THIS PARTICULAR TIME
+        // IF EXISTS DISCARD THE REQUEST
+        // const isTurfAcquired = await isOverLappingBookings(startTime, endTime)
+
+        // if (isTurfAcquired) {
+        //     return res.status(400).json({
+        //         message: "Booking is full. Please choose a different date or time.",
+        //         code: "booking_full"
+        //     });
+        // }
+
+        // CREATE BOOKING
+        const booking = await db.booking.create({
+            data: {
+                turfId,
+                bookingDate,
+                startTime,
+                endTime,
+                slots,
+                totalPlayer,
+                turfCaptainId: turf?.turfCaptainId,
+                userId: user?.id,
+            }
+        })
+
+        console.log("Reaching here ", booking)
+
+        return res.status(200).json(booking)
+
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export const getUsersBookings = async (req: Request, res: Response)=> {
+    try {
+        const users = await db.user.findMany({
+
+            select: {
+                Bookings: true,
+                username: true
+            }
+        })
+
+        return res.status(200).json(users)
+    } catch (error) {
+        
+    }
 }

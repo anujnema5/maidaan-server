@@ -65,7 +65,7 @@ model Turf {
   Booking       Booking[]
   turfCaptainId String?
   turfCaptain   Turfcaptain? @relation(fields: [turfCaptainId], references: [id])
-  published     Boolean @default(false)
+  published     Boolean      @default(false)
 }
 
 model TurfImages {
@@ -96,18 +96,18 @@ model Booking {
   id            String       @id @default(cuid())
   turfId        String
   userId        String
-  turf          Turf         @relation(fields: [turfId], references: [id])
-  user          User         @relation(fields: [userId], references: [id])
+  turf          Turf?        @relation(fields: [turfId], references: [id])
+  user          User?        @relation(fields: [userId], references: [id])
   bookingDate   DateTime     @db.Date
   startTime     DateTime     @db.Timetz(0)
   endTime       DateTime     @db.Timetz(0)
   slots         Int          @default(1) @db.SmallInt
   totalPlayer   Int          @db.SmallInt
-  status        Status
-  paymentMode   PaymentMode
-  rating        Int          @db.SmallInt
-  review        String       @db.Text
-  bookingDoneAt DateTime     @db.Timestamptz(0)
+  status        Status?      @default(pending)
+  paymentMode   PaymentMode?
+  rating        Int?         @db.SmallInt
+  review        String?      @db.Text
+  bookingDoneAt DateTime?    @db.Timestamptz(0)
   turfCaptainId String?
   turfCaptain   Turfcaptain? @relation(fields: [turfCaptainId], references: [id])
 }
