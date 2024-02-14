@@ -133,7 +133,7 @@ export const getAllTcs = async (req: Request, res: Response) => {
     await getAllEntities(db.turfcaptain, res)
 }
 
-export const editc = async (req: Request, res: Response) => {
+export const editTc = async (req: Request, res: Response) => {
     try {
         const tcId = req.params.id
         const updatedFields = req.body;
@@ -157,8 +157,8 @@ export const editc = async (req: Request, res: Response) => {
     }
 }
 
-export const createTurf = async (req: Request, res: Response) => {
-    const tcId = req.params.turfCaptainId
+export const createTurf = async (req: AuthenticatedRequest, res: Response) => {
+    const tcId = req.tc.id || req.params.turfCaptainId 
     const turfData = req.body
 
     if (!turfData || typeof turfData !== 'object' || Object.keys(turfData).length === 0) {
