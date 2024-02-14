@@ -64,7 +64,7 @@ model Turf {
   turfImages    TurfImages[]
   Booking       Booking[]
   turfCaptainId String?
-  turfCaptain   Turfcaptain? @relation(fields: [turfCaptainId], references: [id])
+  turfCaptain   Turfcaptain? @relation(fields: [turfCaptainId], references: [id], onDelete:Cascade)
   published     Boolean      @default(false)
 }
 
@@ -74,7 +74,7 @@ model TurfImages {
   alt        String?
   uploadedAt DateTime @default(now())
   turfId     String
-  turf       Turf     @relation(fields: [turfId], references: [id])
+  turf       Turf     @relation(fields: [turfId], references: [id], onDelete:Cascade)
 }
 
 enum PaymentMode {
@@ -96,8 +96,8 @@ model Booking {
   id            String       @id @default(cuid())
   turfId        String
   userId        String
-  turf          Turf?        @relation(fields: [turfId], references: [id])
-  user          User?        @relation(fields: [userId], references: [id])
+  turf          Turf?        @relation(fields: [turfId], references: [id], onDelete:Cascade)
+  user          User?        @relation(fields: [userId], references: [id], onDelete:Cascade)
   bookingDate   DateTime     @db.Date
   startTime     DateTime     @db.Timetz(0)
   endTime       DateTime     @db.Timetz(0)
@@ -109,5 +109,5 @@ model Booking {
   review        String?      @db.Text
   bookingDoneAt DateTime?    @db.Timestamptz(0)
   turfCaptainId String?
-  turfCaptain   Turfcaptain? @relation(fields: [turfCaptainId], references: [id])
+  turfCaptain   Turfcaptain? @relation(fields: [turfCaptainId], references: [id], onDelete:Cascade)
 }

@@ -1,42 +1,57 @@
 import { Router } from "express";
+
 import passport from "passport";
 import {
-    createBooking,
-    getAllusers,
-    getUsersBookings,
     googleAuth,
     signUpUser,
     signinUser,
     userAccessRefershToken
-} from "@/controllers/user.controllers";
+} from "@/controllers/user-auth.controllers";
+
 import { verifyUser } from "@/middlewares/auth.middleware";
+
+import {
+    createBooking,
+    getAllusers,
+    getAllusersWithBookings,
+    getUserFromID,
+    getUserFromIDWithBookings,
+    getUsersBookings,
+    deleteUserFromId,
+    getUserBooking
+} from "@/controllers/user.controllers";
 
 const router = Router();
 
-router.route("/get-all-users").get(getAllusers)
-
+// ALL AUTH ROUTES
 // CREDENTIALS SIGN-IN/UP
-router.route('/sign-in').post(signinUser)
-router.route('/sign-up').post(signUpUser)
-router.route('/refresh-token').post(userAccessRefershToken)
+router.route('/auth/sign-in').post(signinUser)
+router.route('/auth/sign-up').post(signUpUser)
+router.route('/auth/refresh-token').post(userAccessRefershToken)
 
 // GOOGLE PROVIDERS SIGN-IN/UP
-router.route('/google').get(passport.authenticate('google', { scope: ["profile", "email"] }))
-router.route('/google/callback').get(passport.authenticate('google', { session: false }), googleAuth)
+router.route('/auth/google').get(passport.authenticate('google', { scope: ["profile", "email"] }))
+router.route('/auth/google/callback').get(passport.authenticate('google', { session: false }), googleAuth)
+
+// GET USER BY ID
+router.route('/get/:userId/').get(getUserFromID)
+router.route('/get/:userId/bookings').get(getUserFromIDWithBookings)
+
+// DELETE USER
+// DEV PURPOSE ONLY, A SIGN-IN USER CAN ONLY DELETE HIS ACCOUNT
+router.route("/:userId/").delete(deleteUserFromId)
+
+// DELETE USER FOR PROD 
+router.route("/").delete(verifyUser, deleteUserFromId)
+
+// DEV PURPOSE (NO PRODUCTION ROLL-OUT)
+router.route('/:userId/get-user-bookings').get(getUserBooking)
+router.route("/get-all-users-with-bookings").get(getAllusersWithBookings)
+
+// GET USER BOOKING
+router.route('/get-user-booking').get(verifyUser, getUserBooking)
 
 // CREATE BOOKING
 router.route("/create-booking").post(verifyUser, createBooking)
-
-
-router.route('/get-users-booking').get(getUsersBookings)
-
-// EDIT USER 
-// {{ _.api_url }}/user/create-booking
-
-// ACCOUNT SETUP 
-
-// FORGET & UPDATE PASSWORD 
-
-// PHONE NUMBER SIGN-IN/UP 
 
 export default router;

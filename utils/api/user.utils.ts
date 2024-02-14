@@ -1,33 +1,52 @@
 // utils/user.utils.ts
 import { db } from "@/db";
 
-export const getUserById = async (id: string) => {
-    return getUserByField('user', 'id', id);
+export const getUserById = async (id: string, select = "") => {
+    return getEntityByField('user', 'id', id, select);
 }
 
 export const getUserByEmail = async (email: string) => {
-    return getUserByField('user', 'email', email);
+    return getEntityByField('user', 'email', email);
+}
+
+export const deleteUserById = async (id: string) => {
+    return deleteEntityByField('user', 'id', id)
 }
 
 export const getTcById = async (id: string) => {
-    return getUserByField('turfcaptain', 'id', id);
+    return getEntityByField('turfcaptain', 'id', id);
 }
 
 export const getTcByEmail = async (email: string) => {
-    return getUserByField('turfcaptain', 'email', email);
+    return getEntityByField('turfcaptain', 'email', email);
 }
 
-const getUserByField = async (entity: 'user' | 'turfcaptain', field: string, value: string) => {
+export const getEntityByField = async (entity: 'user' | 'turfcaptain', field: string, value: string, select = "") => {
     try {
+
         const result = await (db[entity].findFirst as any)({
             where: { [field]: value }
+            // ,select: select ? { [select]: true } : {}
         });
+
         return result;
     } catch (error) {
         console.log(error);
         return null;
     }
 };
+
+export const deleteEntityByField = async (entity: 'user' | 'turfcaptain', fields: string, value: string, select = "") => {
+    try {
+        const deletedEntity = await (db[entity].delete as any)({
+            where: { [fields]: value }
+        })
+
+        return deletedEntity;
+    } catch (error) {
+        
+    }
+}
 
 export const isOverLappingBookings = async (upcomingBookingStartTime: any, upcomingBookingEndTime: any) => {
     try {
