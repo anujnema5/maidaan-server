@@ -6,15 +6,20 @@ import { Request, Response } from "express";
 
 export const createBooking = async (req: AuthenticatedRequest, res: Response) => {
     const { turfId, bookingDate, startTime, endTime, slots, totalPlayer } = req.body
-    const user = await req.user;
+    const userId = await req.user?.id;
 
-    console.log(user)
 
     try {
-        const turf = await db.turf.findUnique({ where: { id: turfId }, })
+        const user = await db.user.findUnique({ where: { id: userId } })
+
+        if (!user) {
+            res.status(401).json("User does not exist, something bad detected")
+        }
+
+        const turf = await db.turf.findUnique({ where: { id: turfId }})
 
         if (!turf) {
-            res.status(401).json({ message: "Turf with this ID does not exist, Please make a turf" })
+            res.status(401).json("Turf with this ID does not exist, Please make a turf")
         }
 
         // TO-DO: IMPLEMENT A CHECK WHERE USER CANNOT HAVE DATE BEFORE PRESENT DATE
@@ -40,7 +45,7 @@ export const createBooking = async (req: AuthenticatedRequest, res: Response) =>
                 slots,
                 totalPlayer,
                 turfCaptainId: turf?.turfCaptainId,
-                userId: user?.id,
+                userId: userId,
             }
         })
 
@@ -99,8 +104,7 @@ export const getAllusersWithBookings = async (req: Request, res: Response) => {
 }
 
 export const getUserBooking = async (req: AuthenticatedRequest, res: Response) => {
-    // API FOR DEV PURPOSE
-    const userId = req.user.id || req.params.userId 
+    const userId = req.user.id || req.params.userId
 
     try {
         const user = await db.user.findUnique({

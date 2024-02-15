@@ -9,6 +9,8 @@ import {
 } from "@/controllers/turf-auth.controllers";
 
 import {
+    confirmBooking,
+    createBookingByTc,
     getTcBookings,
     getTurfBookings
 } from "@/controllers/turf.controllers";
@@ -43,6 +45,12 @@ router.route("/turf-captain-bookings").get(verifyTc, getTcBookings)
 
 // GET ALL BOOKINGS FOR A PARTICULAR TURF 
 router.route("/:turfId/turf-with-bookings").get(verifyTc, getTurfBookings)
+
+// CONFIRM A BOOKING
+router.route("/:bookingId/confirm-booking").post(verifyTc, confirmBooking)
+
+// API WHERE TURF OWNER CAN CREATE HIS OWN BOOKING
+router.route("/create-booking").post(verifyTc, createBookingByTc)
 
 // CALENDAR API TO GET BOOKINGS -> TODAY, TOMMOROW, YESTERDAY AND PAST BOOKINGS
 

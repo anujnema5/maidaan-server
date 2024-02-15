@@ -2,26 +2,30 @@
 import { db } from "@/db";
 
 export const getUserById = async (id: string, select = "") => {
-    return getEntityByField('user', 'id', id, select);
+    return await getEntityByField('user', 'id', id, select);
 }
 
 export const getUserByEmail = async (email: string) => {
-    return getEntityByField('user', 'email', email);
+    return await getEntityByField('user', 'email', email);
 }
 
 export const deleteUserById = async (id: string) => {
-    return deleteEntityByField('user', 'id', id)
+    return await deleteEntityByField('user', 'id', id)
 }
 
 export const getTcById = async (id: string) => {
-    return getEntityByField('turfcaptain', 'id', id);
+    return await getEntityByField('turfcaptain', 'id', id);
 }
 
 export const getTcByEmail = async (email: string) => {
-    return getEntityByField('turfcaptain', 'email', email);
+    return await getEntityByField('turfcaptain', 'email', email);
 }
 
-export const getEntityByField = async (entity: 'user' | 'turfcaptain', field: string, value: string, select = "") => {
+export const getBookingById = async (id: string) => {
+    return await getEntityByField('booking', 'id', id)
+}
+
+export const getEntityByField = async (entity: 'user' | 'turfcaptain' | 'booking', field: string, value: string, select = "") => {
     try {
 
         const result = await (db[entity].findFirst as any)({
@@ -44,7 +48,7 @@ export const deleteEntityByField = async (entity: 'user' | 'turfcaptain', fields
 
         return deletedEntity;
     } catch (error) {
-        
+
     }
 }
 

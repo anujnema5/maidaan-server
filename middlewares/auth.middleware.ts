@@ -44,6 +44,6 @@ export const verifyTc = async (req: AuthenticatedRequest, res: Response, next: N
             console.log("Token expired")
             return res.status(401).json({ messge: "Token expired" })
         }
-        return res.status(401).json({ message: "Suspicious activity detected" })
+        return res.status(401).json({ message: "Suspicious activity detected, someone is attaching a fake token" })
     }
 }
