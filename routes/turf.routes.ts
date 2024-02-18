@@ -11,8 +11,10 @@ import {
 import {
     confirmBooking,
     createBookingByTc,
+    getAllTurfs,
     getTcBookings,
-    getTurfBookings
+    getTurfBookings,
+    verifyOtp
 } from "@/controllers/turf.controllers";
 
 // TO-DO - ADD COL IN TURF SCHEMA FOR OPENING AND CLOSING OF THAT TURF
@@ -51,6 +53,13 @@ router.route("/:bookingId/confirm-booking").post(verifyTc, confirmBooking)
 
 // API WHERE TURF OWNER CAN CREATE HIS OWN BOOKING
 router.route("/create-booking").post(verifyTc, createBookingByTc)
+router.route("/confirm-booking") // TODO
+
+router.route("/:bookingId/otp-verification").post(verifyTc, verifyOtp)
+
+router.route("/get-all-turfs").get(getAllTurfs)
+
+// SETUP OTP VERIFICATION WHEN CLIENT REACHES TO TURF
 
 // CALENDAR API TO GET BOOKINGS -> TODAY, TOMMOROW, YESTERDAY AND PAST BOOKINGS
 

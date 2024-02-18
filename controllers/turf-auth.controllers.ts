@@ -14,12 +14,21 @@ export const signinTc = async (req: Request, res: Response) => {
     try {
         // TODO: IMPLEMENT ZOD VALIDATION HERE
         const { username, email, password } = req.body;
+        // console.log({ username, password })
 
-        if (!username && !email) {
-            return res.status(400).json({ message: "Username or email is required" })
-        }
+        // if (!username && !email) {
+        //     return res.status(400).json({ message: "Username or email is required" })
+        // }
 
-        const foundTc = await db.turfcaptain.findFirst({ where: { username } }) as Turfcaptain
+        const foundTc = await db.turfcaptain.findFirst({
+            where: {
+                OR: [
+                    { username },
+                    { email }
+                ]
+            }
+        }) as Turfcaptain
+
         const isPasswordCorrect = await bcrypt.compare(password, foundTc?.password as string)
 
         if (!isPasswordCorrect) {
@@ -158,7 +167,7 @@ export const editTc = async (req: Request, res: Response) => {
 }
 
 export const createTurf = async (req: AuthenticatedRequest, res: Response) => {
-    const tcId = req.tc.id || req.params.turfCaptainId 
+    const tcId = req.tc.id || req.params.turfCaptainId
     const turfData = req.body
 
     if (!turfData || typeof turfData !== 'object' || Object.keys(turfData).length === 0) {

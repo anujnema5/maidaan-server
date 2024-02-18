@@ -11,6 +11,34 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum Turfs {
+  cricket
+  badminton
+  football
+  tennis
+  rugby
+  multisports
+  golf
+  boxcricket
+  training
+  zumba
+}
+
+enum PaymentMode {
+  UPI
+  COD
+  DEBIT_CARD
+  CREDIT_CARD
+  BANK
+  OTHER
+}
+
+enum Status {
+  pending
+  confirmed
+  rejected
+}
+
 model User {
   id            String    @id @default(cuid())
   fullName      String?
@@ -26,6 +54,7 @@ model User {
   refreshToken  String?   @db.Text
   Bookings      Booking[]
   Account       Account?
+  token         Token?
 }
 
 model Account {
@@ -63,7 +92,12 @@ model Turf {
   updatedAt     DateTime     @updatedAt
   turfImages    TurfImages[]
   Booking       Booking[]
+  category      Turfs?
   turfCaptainId String?
+  opensAt       DateTime     @db.Time(0)
+  closeAt       DateTime     @db.Time(0)
+  breakStart    DateTime?    @db.Time(0)
+  breakEnd      DateTime?    @db.Time(0)
   turfCaptain   Turfcaptain? @relation(fields: [turfCaptainId], references: [id], onDelete: Cascade)
   published     Boolean      @default(false)
 }
@@ -75,21 +109,6 @@ model TurfImages {
   uploadedAt DateTime @default(now())
   turfId     String
   turf       Turf     @relation(fields: [turfId], references: [id], onDelete: Cascade)
-}
-
-enum PaymentMode {
-  UPI
-  COD
-  DEBIT_CARD
-  CREDIT_CARD
-  BANK
-  OTHER
-}
-
-enum Status {
-  pending
-  confirmed
-  rejected
 }
 
 model Booking {
@@ -106,9 +125,26 @@ model Booking {
   totalPlayer         Int          @db.SmallInt
   status              Status?      @default(pending)
   paymentMode         PaymentMode?
+  reached             Boolean      @default(false)
   rating              Int?         @db.SmallInt
   review              String?      @db.Text
   bookingDoneAt       DateTime?    @db.Timestamptz(0)
   turfCaptainId       String?
   turfCaptain         Turfcaptain? @relation(fields: [turfCaptainId], references: [id], onDelete: Cascade)
+  BookingOTP          BookingOTP?
+}
+
+model BookingOTP {
+  id             Int      @id @default(autoincrement())
+  bookingId      String   @unique
+  otp            String
+  isUsed         Boolean?  @default(false)
+  expirationDate DateTime @db.Timestamptz(0)
+  booking        Booking  @relation(fields: [bookingId], references: [id])
+}
+
+model Token {
+  id     String @id @default(cuid())
+  userId String @unique
+  User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

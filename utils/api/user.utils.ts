@@ -25,6 +25,15 @@ export const getBookingById = async (id: string) => {
     return await getEntityByField('booking', 'id', id)
 }
 
+/**
+ * GET AN ENTITY 
+ * LIKE (USER, ACCOUNT, TURF-CAPTAIN, TURF) BY FIELD (ID, EMAIL etc.)
+ * @param entity 
+ * @param field 
+ * @param value 
+ * @param select 
+ * @returns 
+ */
 export const getEntityByField = async (entity: 'user' | 'turfcaptain' | 'booking', field: string, value: string, select = "") => {
     try {
 
@@ -40,6 +49,14 @@ export const getEntityByField = async (entity: 'user' | 'turfcaptain' | 'booking
     }
 };
 
+/**
+ * DELETE ANY DB ENTITY LIKE USER, ACCOUNT, TURF-CAPTAIN, TURF
+ * @param entity 
+ * @param fields 
+ * @param value 
+ * @param select 
+ * @returns 
+ */
 export const deleteEntityByField = async (entity: 'user' | 'turfcaptain', fields: string, value: string, select = "") => {
     try {
         const deletedEntity = await (db[entity].delete as any)({
@@ -49,42 +66,5 @@ export const deleteEntityByField = async (entity: 'user' | 'turfcaptain', fields
         return deletedEntity;
     } catch (error) {
 
-    }
-}
-
-export const isOverLappingBookings = async (upcomingBookingStartTime: any, upcomingBookingEndTime: any) => {
-    try {
-        const overlappingBookings = await db.booking.findMany({
-            where: {
-                OR: [
-                    {
-                        AND: [
-                            { startTime: { lte: upcomingBookingStartTime } },
-                            { endTime: { gt: upcomingBookingStartTime } },
-                        ],
-                    },
-                    {
-                        AND: [
-                            { startTime: { lt: upcomingBookingEndTime } },
-                            { endTime: { gte: upcomingBookingEndTime } },
-                        ],
-                    },
-                    {
-                        AND: [
-                            { startTime: { gte: upcomingBookingStartTime } },
-                            { endTime: { lte: upcomingBookingEndTime } },
-                        ],
-                    },
-                ],
-            },
-        });
-
-        if (overlappingBookings.length > 0) {
-            return false
-        }
-
-        return true
-    } catch (error) {
-        console.log(error)
     }
 }

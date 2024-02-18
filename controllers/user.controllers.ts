@@ -1,53 +1,43 @@
 import { db } from "@/db";
-import { AuthenticatedRequest } from "@/static/types";
+import { AuthenticatedRequest, requestBookingDetails } from "@/static/types";
 import { getAllEntities } from "@/utils/api/api.utils";
+import { isFutureOrPresent, isOverLappingBookings, makeBooking } from "@/utils/api/booking.utils";
 import { deleteUserById, getUserById } from "@/utils/api/user.utils";
 import { Request, Response } from "express";
 
 export const createBooking = async (req: AuthenticatedRequest, res: Response) => {
-    const { turfId, bookingDate, startTime, endTime, slots, totalPlayer } = req.body
-    const userId = await req.user?.id;
+    const requestBookingDetails = req.body as requestBookingDetails
+    const { turfId, startTime, endTime, bookingDate } = requestBookingDetails
 
+    const userId = await req.user?.id;
 
     try {
         const user = await db.user.findUnique({ where: { id: userId } })
 
         if (!user) {
-            res.status(401).json("User does not exist, something bad detected")
+            res.status(401).json({ error: "User does not exist, something bad detected" })
         }
 
-        const turf = await db.turf.findUnique({ where: { id: turfId }})
+        const turf = await db.turf.findUnique({ where: { id: turfId } })
 
         if (!turf) {
-            res.status(401).json("Turf with this ID does not exist, Please make a turf")
+            res.status(401).json({ error: "Turf with this ID does not exist, Please make a turf" })
         }
 
-        // TO-DO: IMPLEMENT A CHECK WHERE USER CANNOT HAVE DATE BEFORE PRESENT DATE
+        const validDate = isFutureOrPresent(bookingDate, startTime, endTime)
 
-        // HERE IS A CHECK THAT VALIDATES WEATHER A BOOKING EXIST IN THIS PARTICULAR TIME
-        // IF EXISTS THEN DISCARD THE REQUEST
-        // const isTurfAcquired = await isOverLappingBookings(startTime, endTime)
+        if (!validDate) {
+            res.status(400).json({ error: "Invalid date" })
+        }
 
-        // if (isTurfAcquired) {
-        //     return res.status(400).json({
-        //         message: "Booking is full. Please choose a different date or time.",
-        //         code: "booking_full"
-        //     });
-        // }
+        const isTurfAcquired = await isOverLappingBookings(startTime, endTime)
+
+        if (isTurfAcquired) {
+            return res.status(400).json({ error: "Booking is full. Please choose a different date or time.", });
+        }
 
         // CREATE BOOKING
-        const booking = await db.booking.create({
-            data: {
-                turfId,
-                bookingDate,
-                startTime,
-                endTime,
-                slots,
-                totalPlayer,
-                turfCaptainId: turf?.turfCaptainId,
-                userId: userId,
-            }
-        })
+        const booking = await makeBooking(requestBookingDetails)
 
         console.log("Reaching here ", booking)
 
@@ -55,6 +45,7 @@ export const createBooking = async (req: AuthenticatedRequest, res: Response) =>
 
     } catch (error) {
         console.log(error)
+        res.status(400).json({ error: error })
     }
 }
 

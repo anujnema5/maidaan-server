@@ -126,3 +126,28 @@ export const createBookingByTc = async (req: AuthenticatedRequest, res: Response
         console.log(error)
     }
 }
+
+export const getAllTurfs = async (req: Request, res: Response) => {
+    try {
+        const turfs = await db.turf.findMany({
+            include: {
+                turfImages: true,
+                turfCaptain: {
+                    select: { id: true, fullName: true }
+                }
+            }
+        });
+
+        if (turfs.length <= 0) {
+            res.send("No registered turfs found")
+        }
+
+        res.status(200).json(turfs)
+    } catch (error) {
+        res.status(401).json(error)
+    }
+}
+
+export const verifyOtp = async (req: Request, res: Response) => {
+    
+}

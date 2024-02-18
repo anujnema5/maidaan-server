@@ -54,4 +54,10 @@ router.route('/get-user-booking').get(verifyUser, getUserBooking)
 // CREATE BOOKING
 router.route("/create-booking").post(verifyUser, createBooking)
 
+
+// CRICKET TURFS
+// FOOTBALL TURFS
+// BADMINTON TURFS
+// TENNIS TURFS
+
 export default router;
