@@ -114,9 +114,6 @@ export const googleAuth = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { accessToken, refreshToken } = await generateAccessRefreshToken(req.user?.id) as any
 
-        console.log("accessToken andar wala " + accessToken);
-        console.log("refreshToken andar wala " + refreshToken);
-
         return res.status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)

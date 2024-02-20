@@ -11,7 +11,7 @@ router.post('/sign-up', signUpTc)
 router.post('/refresh-token', tcAccessRefershToken)
 
 // GOOGLE AUTH
-router.get('/auth/google', passport.authenticate('google', { scope: ["profile", "email"] }))
-router.get('/auth/google/callback', passport.authenticate('google', { session: false }), tcGoogleAuth)
+router.get('/google', passport.authenticate('google', { scope: ["profile", "email"] }))
+router.get('/google/callback', passport.authenticate('google', { session: false }), tcGoogleAuth)
 
 export default router.use('/tc', router);

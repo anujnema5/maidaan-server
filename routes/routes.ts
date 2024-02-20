@@ -8,6 +8,6 @@ const api = Router()
     .use(authRoute)
     .use(userRoutes)
     .use(turfRoutes)
-    .use(devRoutes)
+    .use(devRoutes) //DEV PURPOSE ONLY
 
 export default api.use('/api', api)

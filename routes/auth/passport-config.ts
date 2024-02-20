@@ -4,6 +4,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import 'dotenv/config'
 import { db } from '@/db';
 import { User } from '@prisma/client';
+import { getUserByEmail } from '@/services/user.utils';
 
 const jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -28,17 +29,17 @@ passport.use(new JwtStrategy(jwtOptions, async (payload, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID as string,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    callbackURL: '/api/auth/google/callback',
+    callbackURL: '/api/auth/user/google/callback' || '/api/auth/tc/google/callback',
 },
 
     async (accessToken, refreshToken, profile, done) => {
 
         try {
             const { id, displayName, name, emails, photos, provider } = profile
-            const email = emails?.[0].value;
+            const email = emails?.[0].value as string;
             // const isVerified = emails?.[0].verified
 
-            const existingUser = await db.user.findFirst({ where: { email } })
+            const existingUser = await getUserByEmail(email)
 
             if (existingUser) {
                 return done(null, existingUser as User)
