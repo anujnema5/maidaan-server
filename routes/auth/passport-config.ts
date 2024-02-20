@@ -32,9 +32,6 @@ passport.use(new GoogleStrategy({
 },
 
     async (accessToken, refreshToken, profile, done) => {
-        console.log("Access token" + accessToken);
-        console.log("Refresh token " + refreshToken);
-        console.log(profile);
 
         try {
             const { id, displayName, name, emails, photos, provider } = profile
@@ -63,7 +60,7 @@ passport.use(new GoogleStrategy({
 
         } catch (error) {
             console.log(error);
-            
+
         }
 
     }));

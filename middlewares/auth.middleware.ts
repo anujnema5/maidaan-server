@@ -1,5 +1,5 @@
-import { AuthenticatedRequest } from "@/static/types";
-import { getTcById, getUserById } from "@/utils/api/user.utils";
+import { AuthenticatedRequest } from "@/utils/static/types";
+import { getTcById, getUserById } from "@/services/user.utils";
 import { NextFunction, Request, Response } from "express";
 import { verify, TokenExpiredError } from 'jsonwebtoken';
 

@@ -1,5 +1,7 @@
 import { db } from "@/db"
-import { requestBookingDetails } from "@/static/types"
+import { requestBookingDetails } from "@/utils/static/types"
+import { Turf, Turfcaptain } from "@prisma/client"
+import { Response } from "express"
 
 export const makeBooking = async (requestBookingDetails: requestBookingDetails) => {
     const {
@@ -90,15 +92,40 @@ export const isOverLappingBookings = async (upcomingBookingStartTime: any, upcom
  * @param dateString 
  * @returns 
  */
-export function isFutureOrPresent(dateString: string, startTime: string, endTime: string) {
-    // Convert the input date and time string to a Date object
+export const isValidDateTime = (
+    dateString: string,
+    turfCaptain: Turfcaptain,
+    bookingStartTime: string,
+    bookingEndTime: string,
+    res: Response
+) => {
+    // Input validation
     const inputDate = new Date(dateString);
-    const inputStartTime = new Date(startTime)
-    const inputEndTime = new Date(endTime)
+    const isValidInput = !isNaN(inputDate.getTime());
 
-    // Get the current date and time
+    if (!isValidInput) {
+        return res.status(400).json({ error: "Invalid date format" });
+    }
+
     const presentDate = new Date();
 
     // Check if the input date is in the future or at least the present
-    return inputDate || inputStartTime || inputEndTime >= presentDate;
-}
+    const isDateValid = inputDate >= presentDate;
+
+    if (!isDateValid) {
+        return res.status(401).json({ error: "Booking date cannot be in the past" });
+    }
+
+    // Check if booking time is valid
+    const isTimeValid =
+        bookingStartTime >= turfCaptain?.startTime &&
+        bookingStartTime < turfCaptain.endTime &&
+        bookingEndTime < turfCaptain.endTime &&
+        bookingEndTime > turfCaptain?.startTime;
+
+    if (!isTimeValid) {
+        return res.status(401).json({ error: "Invalid booking time range" });
+    }
+
+    return isDateValid && isTimeValid;
+};

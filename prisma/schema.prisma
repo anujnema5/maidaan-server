@@ -33,10 +33,15 @@ enum PaymentMode {
   OTHER
 }
 
-enum Status {
+enum BookingStatus {
   pending
   confirmed
   rejected
+}
+
+enum tcStatus {
+  offline
+  online
 }
 
 model User {
@@ -78,6 +83,9 @@ model Turfcaptain {
   provider      String?
   phoneNumber   String?
   refreshToken  String?   @db.Text
+  startTime     String
+  endTime       String
+  status        tcStatus? @default(online)
   turfs         Turf[]
   bookings      Booking[]
 }
@@ -94,10 +102,6 @@ model Turf {
   Booking       Booking[]
   category      Turfs?
   turfCaptainId String?
-  opensAt       DateTime     @db.Time(0)
-  closeAt       DateTime     @db.Time(0)
-  breakStart    DateTime?    @db.Time(0)
-  breakEnd      DateTime?    @db.Time(0)
   turfCaptain   Turfcaptain? @relation(fields: [turfCaptainId], references: [id], onDelete: Cascade)
   published     Boolean      @default(false)
 }
@@ -112,25 +116,25 @@ model TurfImages {
 }
 
 model Booking {
-  id                  String       @id @default(cuid())
+  id                  String         @id @default(cuid())
   turfId              String
   userId              String?
-  bookedByTurfCaptain Boolean?     @default(false)
-  turf                Turf         @relation(fields: [turfId], references: [id], onDelete: Cascade)
-  user                User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bookingDate         DateTime     @db.Date
-  startTime           DateTime     @db.Timetz(0)
-  endTime             DateTime     @db.Timetz(0)
-  slots               Int          @default(1) @db.SmallInt
-  totalPlayer         Int          @db.SmallInt
-  status              Status?      @default(pending)
+  bookedByTurfCaptain Boolean?       @default(false)
+  turf                Turf           @relation(fields: [turfId], references: [id], onDelete: Cascade)
+  user                User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookingDate         DateTime       @db.Date
+  startTime           DateTime       @db.Timetz(0)
+  endTime             DateTime       @db.Timetz(0)
+  slots               Int            @default(1) @db.SmallInt
+  totalPlayer         Int            @db.SmallInt
+  status              BookingStatus? @default(pending)
   paymentMode         PaymentMode?
-  reached             Boolean      @default(false)
-  rating              Int?         @db.SmallInt
-  review              String?      @db.Text
-  bookingDoneAt       DateTime?    @db.Timestamptz(0)
+  reached             Boolean        @default(false)
+  rating              Int?           @db.SmallInt
+  review              String?        @db.Text
+  bookingDoneAt       DateTime?      @db.Timestamptz(0)
   turfCaptainId       String?
-  turfCaptain         Turfcaptain? @relation(fields: [turfCaptainId], references: [id], onDelete: Cascade)
+  turfCaptain         Turfcaptain?   @relation(fields: [turfCaptainId], references: [id], onDelete: Cascade)
   BookingOTP          BookingOTP?
 }
 
@@ -138,7 +142,7 @@ model BookingOTP {
   id             Int      @id @default(autoincrement())
   bookingId      String   @unique
   otp            String
-  isUsed         Boolean?  @default(false)
+  isUsed         Boolean? @default(false)
   expirationDate DateTime @db.Timestamptz(0)
   booking        Booking  @relation(fields: [bookingId], references: [id])
 }

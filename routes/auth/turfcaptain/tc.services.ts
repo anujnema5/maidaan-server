@@ -2,23 +2,26 @@ import bcrypt from "bcrypt"
 import { Request, Response } from "express"
 import { db } from "@/db/index";
 import jwt from 'jsonwebtoken'
-import { generateAccessRefreshToken } from "@/utils/auth/token.utils";
+import { generateAccessRefreshToken } from "@/routes/auth/token.utils";
 import 'dotenv/config';
-import { getTcByEmail, getTcById } from "@/utils/api/user.utils";
-import { AuthenticatedRequest } from "@/static/types";
-import { options } from "@/static/cookie.options";
+import { getTcByEmail, getTcById, getTcByUsernameOrEmail } from "@/services/user.utils";
+import { AuthenticatedRequest } from "@/utils/static/types";
+import { options } from "@/utils/static/cookie.options";
 import { Prisma, Turfcaptain } from "@prisma/client";
-import { getAllEntities } from "@/utils/api/api.utils";
+import { getAllEntities } from "@/services/global.utils";
 
 export const signinTc = async (req: Request, res: Response) => {
     try {
-        // TODO: IMPLEMENT ZOD VALIDATION HERE
-        const { username, email, password } = req.body;
-        // console.log({ username, password })
 
-        // if (!username && !email) {
-        //     return res.status(400).json({ message: "Username or email is required" })
-        // }
+        /**
+         *  TODO: IMPLEMENT ZOD VALIDATION HERE
+         * */
+
+        const { username, email, password } = req.body;
+
+        if (!username || !email) {
+            return res.status(400).json({ message: "Username or email is required" })
+        }
 
         const foundTc = await db.turfcaptain.findFirst({
             where: {
@@ -51,31 +54,34 @@ export const signinTc = async (req: Request, res: Response) => {
 
 export const signUpTc = async (req: Request, res: Response) => {
     try {
-        const { fullName, username, email, password, phoneNumber } = req.body
+        const requstedBody: Turfcaptain = req.body
+        const { username, email, password } = requstedBody;
 
-        const existedTc = await getTcByEmail(email)
+        const existedTc = await getTcByUsernameOrEmail(username as string, email as string)
 
         if (existedTc) {
             return res.status(409).json({ message: "Turf Captain already exists" });
         }
 
+        const hashedPassword = await bcrypt.hash(password as string, 10)
 
-        else {
-            const hashedPassword = await bcrypt.hash(password, 10)
+        const newTurfCaptain = await db.turfcaptain.create({
+            data: {
+                ...requstedBody,
+                password: hashedPassword
+            },
+        })
 
-            const newTurfCaptain = await db.turfcaptain.create({
-                data: { username, fullName, phoneNumber, email, password: hashedPassword }
-            })
+        const { accessToken, refreshToken } = await generateAccessRefreshToken(newTurfCaptain.id, true) as any
 
-            const { accessToken, refreshToken } = await generateAccessRefreshToken(newTurfCaptain.id, true) as any
+        return res.status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json({ user: newTurfCaptain })
 
+    }
 
-            return res.status(200)
-                .cookie("accessToken", accessToken, options)
-                .cookie("refreshToken", refreshToken, options)
-                .json({ message: "Sucess", user: newTurfCaptain })
-        }
-    } catch (error) {
+    catch (error) {
         return res.status(400).json({ message: 'Validation failed', error });
     }
 }
@@ -135,56 +141,5 @@ export const tcGoogleAuth = async (req: AuthenticatedRequest, res: Response) => 
 
     catch (error) {
         return res.status(401).json(error)
-    }
-}
-
-export const getAllTcs = async (req: Request, res: Response) => {
-    await getAllEntities(db.turfcaptain, res)
-}
-
-export const editTc = async (req: Request, res: Response) => {
-    try {
-        const tcId = req.params.id
-        const updatedFields = req.body;
-
-        if (!updatedFields || Object.keys(updatedFields).length === 0) {
-            return res.status(400).json({ error: 'Bad Request - No valid fields to update provided' });
-        }
-
-        const updatedTc = await db.turfcaptain.update({ where: { id: tcId }, data: updatedFields })
-
-        if (!updatedTc) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        return res.status(200).json(updatedTc)
-    }
-
-    catch (error) {
-        console.log(error)
-        res.status(500).json({ message: 'Internal Server Error', error });
-    }
-}
-
-export const createTurf = async (req: AuthenticatedRequest, res: Response) => {
-    const tcId = req.tc.id || req.params.turfCaptainId
-    const turfData = req.body
-
-    if (!turfData || typeof turfData !== 'object' || Object.keys(turfData).length === 0) {
-        return res.status(400).json({ message: "Invalid request body" });
-    }
-
-    try {
-        const newTurf = await db.turf.create({
-            data: {
-                turfCaptainId: tcId,
-                ...turfData
-            }
-        })
-
-        res.status(200).json(newTurf)
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({ message: "Internal Server Error", error });
     }
 }

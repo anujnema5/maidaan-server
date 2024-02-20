@@ -2,7 +2,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import passport from '@/utils/auth/passport-config';
+import passport from '@/routes/auth/passport-config';
 import cors from 'cors';
 
 const initializeMiddlewares = (app: express.Application) => {

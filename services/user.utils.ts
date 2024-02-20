@@ -21,6 +21,12 @@ export const getTcByEmail = async (email: string) => {
     return await getEntityByField('turfcaptain', 'email', email);
 }
 
+export const getTcByUsernameOrEmail = async (username: string, email: string) => {
+    return await (
+        getEntityByField('turfcaptain', 'username', username) ||
+        getEntityByField('turfcaptain', 'email', email))
+}
+
 export const getBookingById = async (id: string) => {
     return await getEntityByField('booking', 'id', id)
 }
@@ -39,7 +45,6 @@ export const getEntityByField = async (entity: 'user' | 'turfcaptain' | 'booking
 
         const result = await (db[entity].findFirst as any)({
             where: { [field]: value }
-            // ,select: select ? { [select]: true } : {}
         });
 
         return result;

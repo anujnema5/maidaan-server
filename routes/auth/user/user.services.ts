@@ -2,14 +2,14 @@ import bcrypt from "bcrypt"
 import { Request, Response } from "express"
 import { db } from "@/db/index";
 import jwt from 'jsonwebtoken'
-import { generateAccessRefreshToken } from "@/utils/auth/token.utils";
-import { getUserByEmail } from "@/utils/api/user.utils";
-import { AuthenticatedRequest } from "@/static/types";
-import { options } from "@/static/cookie.options";
+import { generateAccessRefreshToken } from "@/routes/auth/token.utils";
+import { getUserByEmail } from "@/services/user.utils";
+import { AuthenticatedRequest } from "@/utils/static/types";
+import { options } from "@/utils/static/cookie.options";
 import { User } from "@prisma/client";
 import 'dotenv/config';
 
-export const signinUser = async (req: Request, res: Response) => {
+export const signInUser = async (req: Request, res: Response) => {
     try {
         // TODO: IMPLEMENT ZOD VALIDATION HERE
         const { username, email, password } = req.body;
@@ -25,7 +25,6 @@ export const signinUser = async (req: Request, res: Response) => {
             return res.status(401).json({ message: "You've entered wrong password" })
         }
 
-        // IMPLEMENT SAME FUNCTION FOR TURF CAPTAIN WITH THIS FUNCTION ONLY
         const { accessToken, refreshToken } = await generateAccessRefreshToken(foundUser.id) as any
 
 
@@ -39,7 +38,6 @@ export const signinUser = async (req: Request, res: Response) => {
         console.log(error);
 
         return res.status(200).json(error)
-
     }
 }
 

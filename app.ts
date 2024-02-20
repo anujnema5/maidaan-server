@@ -1,4 +1,5 @@
 import express, { Application } from "express";
+import routes from "@/routes/routes";
 
 // MIDDLEWARE
 import initializeMiddlewares from "@/middlewares/middleware";
@@ -8,12 +9,7 @@ const app: Application = express();
 initializeMiddlewares(app)
 
 // ROUTES IMPORT
-import userRoutes from '@/routes/user.routes'
-import turfRoutes from '@/routes/turf.routes'
-
-app.use('/v1/user', userRoutes)
-app.use('/v1/turf', turfRoutes)
-// app.get('/v1/bookings', getAllBookings)
+app.use(routes)
 
 // SAMPLE API TEST
 app.get('/', (req, res) => {

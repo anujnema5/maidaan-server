@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import jwt from 'jsonwebtoken';
-import { getUserById, getTcById } from "@/utils/api/user.utils";
+import { getUserById, getTcById } from "@/services/user.utils";
 
 const generateToken = (data: any, secret: string, expiry: string) =>
     jwt.sign(data, secret, { expiresIn: expiry });

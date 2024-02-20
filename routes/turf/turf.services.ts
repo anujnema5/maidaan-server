@@ -1,8 +1,9 @@
 import { db } from "@/db";
-import { AuthenticatedRequest } from "@/static/types";
-import { getBookingById, getEntityByField } from "@/utils/api/user.utils";
+import { AuthenticatedRequest } from "@/utils/static/types";
+import { getBookingById, getEntityByField } from "@/services/user.utils";
 import { Booking } from "@prisma/client";
 import { Request, Response } from "express";
+import { getAllEntities } from "@/services/global.utils";
 
 export const getTcBookings = async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -127,15 +128,13 @@ export const createBookingByTc = async (req: AuthenticatedRequest, res: Response
     }
 }
 
-export const getAllTurfs = async (req: Request, res: Response) => {
+export const getAllTurfs = async (req: AuthenticatedRequest, res: Response) => {
     try {
+        const turfCaptainId = req.tc.id
+
         const turfs = await db.turf.findMany({
-            include: {
-                turfImages: true,
-                turfCaptain: {
-                    select: { id: true, fullName: true }
-                }
-            }
+            where: { turfCaptainId },
+            include: { turfImages: true }
         });
 
         if (turfs.length <= 0) {
@@ -148,6 +147,60 @@ export const getAllTurfs = async (req: Request, res: Response) => {
     }
 }
 
-export const verifyOtp = async (req: Request, res: Response) => {
-    
+export const verifyOtp = async (req: AuthenticatedRequest, res: Response) => {
+
+}
+
+export const editTc = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const tcId = req.tc.id || req.params.id
+        const updatedFields = req.body;
+
+        if (!updatedFields || Object.keys(updatedFields).length === 0) {
+            return res.status(400).json({ error: 'Bad Request - No valid fields to update provided' });
+        }
+
+        const updatedTc = await db.turfcaptain.update({ where: { id: tcId }, data: updatedFields })
+
+        if (!updatedTc) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        return res.status(200).json(updatedTc)
+    }
+
+    catch (error) {
+        console.log(error)
+        res.status(500).json({ message: 'Internal Server Error', error });
+    }
+}
+
+export const createTurf = async (req: AuthenticatedRequest, res: Response) => {
+    const tcId = req.tc.id || req.params.turfCaptainId
+    const turfData = req.body
+
+    if (!turfData || typeof turfData !== 'object' || Object.keys(turfData).length === 0) {
+        return res.status(400).json({ message: "Invalid request body" });
+    }
+
+    try {
+        const newTurf = await db.turf.create({
+            data: {
+                turfCaptainId: tcId,
+                ...turfData
+            }
+        })
+
+        res.status(200).json(newTurf)
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Internal Server Error", error });
+    }
+}
+
+export const markTurfCaptainOffline = async (req: AuthenticatedRequest, res: Response) => {
+}
+
+export const markTurfCaptainOnline = async (req: AuthenticatedRequest, res: Response) => {
+
 }

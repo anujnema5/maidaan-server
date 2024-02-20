@@ -5,7 +5,6 @@ export interface AuthenticatedRequest extends Request {
     tc?: any
 }
 
-
 export type requestBookingDetails = {
     turfId: string,
     bookingDate: string,
