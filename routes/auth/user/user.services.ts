@@ -110,18 +110,3 @@ export const userAccessRefershToken = async (req: Request, res: Response) => {
     }
 }
 
-export const googleAuth = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        const { accessToken, refreshToken } = await generateAccessRefreshToken(req.user?.id) as any
-
-        return res.status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", refreshToken, options)
-            .json({ accessToken })
-
-    }
-
-    catch (error) {
-        return res.status(401).json(error)
-    }
-}

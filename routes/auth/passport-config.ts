@@ -3,8 +3,9 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import 'dotenv/config'
 import { db } from '@/db';
-import { User } from '@prisma/client';
-import { getUserByEmail } from '@/services/user.utils';
+import { Turfcaptain, User } from '@prisma/client';
+import { getTcByEmail, getUserByEmail } from '@/services/user.utils';
+import { RoleRequest } from '@/utils/static/types';
 
 const jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -29,39 +30,63 @@ passport.use(new JwtStrategy(jwtOptions, async (payload, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID as string,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    callbackURL: '/api/auth/user/google/callback' || '/api/auth/tc/google/callback',
+    callbackURL: '/api/auth/google/callback',
+    passReqToCallback: true
 },
-
-    async (accessToken, refreshToken, profile, done) => {
+    async (req: RoleRequest, accessToken: any, refreshToken: any, params: any, profile: any, done: any) => {
 
         try {
             const { id, displayName, name, emails, photos, provider } = profile
             const email = emails?.[0].value as string;
-            // const isVerified = emails?.[0].verified
 
-            const existingUser = await getUserByEmail(email)
+            if (req.role === 'user') {
 
-            if (existingUser) {
-                return done(null, existingUser as User)
-            }
-            // CREATE ONE
+                const existingUser = await getUserByEmail(email)
 
-            const newUser = await db.user.create({
-                data: {
-                    googleId: id,
-                    fullName: displayName,
-                    email: email,
-                    provider,
-                    emailVerified: true
+                if (existingUser) {
+                    return done(null, existingUser as User)
                 }
-            })
 
-            done(null, newUser)
+                // CREATE ONE
+                const newUser = await db.user.create({
+                    data: {
+                        googleId: id,
+                        fullName: displayName,
+                        email: email,
+                        provider,
+                        emailVerified: true
+                    }
+                })
 
+                done(null, newUser)
+            }
+
+            if (req.role === 'tc') {
+
+                const existingTc = await getTcByEmail(email)
+
+                console.log(existingTc)
+
+                if (existingTc) {
+                    return done(null, existingTc as Turfcaptain)
+                }
+                // ELSE CREATE ONE
+                const newTurfCaptain = await db.turfcaptain.create({
+                    data: {
+                        googleId: id,
+                        fullName: displayName,
+                        email: email,
+                        provider,
+                        emailVerified: true
+                    }
+                })
+
+                done(null, newTurfCaptain)
+            }
 
         } catch (error) {
             console.log(error);
-
+            return done(error);
         }
 
     }));

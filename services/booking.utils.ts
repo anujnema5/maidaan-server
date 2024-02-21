@@ -94,7 +94,7 @@ export const isOverLappingBookings = async (upcomingBookingStartTime: any, upcom
  */
 export const isValidDateTime = (
     dateString: string,
-    turfCaptain: Turfcaptain,
+    turfCaptain: any,
     bookingStartTime: string,
     bookingEndTime: string,
     res: Response

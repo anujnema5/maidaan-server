@@ -75,7 +75,7 @@ model Turfcaptain {
   fullName      String?
   username      String?
   email         String?   @unique
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean?  @default(false)
   password      String?
   createdAt     DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime  @updatedAt @db.Timestamptz(3)
@@ -83,8 +83,8 @@ model Turfcaptain {
   provider      String?
   phoneNumber   String?
   refreshToken  String?   @db.Text
-  startTime     String
-  endTime       String
+  startTime     String?
+  endTime       String?
   status        tcStatus? @default(online)
   turfs         Turf[]
   bookings      Booking[]

@@ -1,9 +1,10 @@
 // middlewares.ts
-import express from 'express';
+import express, { Router } from 'express';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import passport from '@/routes/auth/passport-config';
 import cors from 'cors';
+import { RoleRequest, Role } from '@/utils/static/types';
 
 const initializeMiddlewares = (app: express.Application) => {
     app.use(express.json());
@@ -27,6 +28,15 @@ const initializeMiddlewares = (app: express.Application) => {
             credentials: true,
         })
     );
+};
+
+export const initializeRole = (router: Router, role: Role) => {
+    router.use((req: RoleRequest, res, next) => {
+        if (!req.role) {
+            req.role = role;
+        }
+        next();
+    });
 };
 
 export default initializeMiddlewares;

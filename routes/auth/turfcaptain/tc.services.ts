@@ -131,6 +131,7 @@ export const tcAccessRefershToken = async (req: Request, res: Response) => {
 
 export const tcGoogleAuth = async (req: AuthenticatedRequest, res: Response) => {
     try {
+        console.log(req.params)
         const { accessToken, refreshToken } = await generateAccessRefreshToken(req.tc?.id, true) as any
 
         return res.status(200)
