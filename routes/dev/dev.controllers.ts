@@ -11,6 +11,7 @@ router.get("/get-all-users-with-bookings");
 
 // GET ALL TURF CAPTAINS FOR DEV PURPOSE
 router.get("/get-all-tcs", getAllTcs);
+router.get("/get-all-turfs", getAllTurfs);
 router.get("/get-all-bookings", getAllBookings);
 
 export default router.use('/dev', router)

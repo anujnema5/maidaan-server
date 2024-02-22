@@ -7,6 +7,7 @@ import { Turf, Turfcaptain } from "@prisma/client";
 import { Request, Response } from "express";
 
 export const createBooking = async (req: AuthenticatedRequest, res: Response) => {
+
     const requestBookingDetails = req.body as requestBookingDetails
     const { turfId, startTime, endTime, bookingDate } = requestBookingDetails
 
@@ -28,7 +29,8 @@ export const createBooking = async (req: AuthenticatedRequest, res: Response) =>
             res.status(401).json({ error: "Turf with this ID does not exist, Please make a turf" })
         }
 
-        isValidDateTime(bookingDate, turf?.turfCaptain, startTime, endTime, res)
+        // const validTime = isValidDateTime(bookingDate, turf?.turfCaptain, startTime, endTime, res)
+
 
         // const isTurfAcquired = await isOverLappingBookings(startTime, endTime)
 

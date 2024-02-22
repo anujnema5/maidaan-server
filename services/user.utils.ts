@@ -40,7 +40,7 @@ export const getBookingById = async (id: string) => {
  * @param select 
  * @returns 
  */
-export const getEntityByField = async (entity: 'user' | 'turfcaptain' | 'booking', field: string, value: string, select = "") => {
+export const getEntityByField = async (entity: 'user' | 'turfcaptain' | 'booking' | 'bookingOTP', field: string, value: string, select = "") => {
     try {
 
         const result = await (db[entity].findFirst as any)({

@@ -19,7 +19,7 @@ export const signinTc = async (req: Request, res: Response) => {
 
         const { username, email, password } = req.body;
 
-        if (!username || !email) {
+        if (!username && !email) {
             return res.status(400).json({ message: "Username or email is required" })
         }
 
@@ -39,6 +39,7 @@ export const signinTc = async (req: Request, res: Response) => {
         }
 
         const { accessToken, refreshToken } = await generateAccessRefreshToken(foundTc?.id, true) as any
+
 
         return res.status(200)
             .cookie("accessToken", accessToken, options)

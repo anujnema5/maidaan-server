@@ -32,9 +32,7 @@ const initializeMiddlewares = (app: express.Application) => {
 
 export const initializeRole = (router: Router, role: Role) => {
     router.use((req: RoleRequest, res, next) => {
-        if (!req.role) {
-            req.role = role;
-        }
+        req.role = role;
         next();
     });
 };

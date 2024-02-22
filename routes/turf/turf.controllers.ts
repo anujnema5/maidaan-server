@@ -35,4 +35,7 @@ router.post('/mark-online', markTurfCaptainOnline)
 
 // GET ALL TURFS
 router.get("/get-all-turfs", getAllTurfs);
+
+// API FOR UPLOADING IMAGES
+
 export default router.use('/turf-captain', verifyTc, router);

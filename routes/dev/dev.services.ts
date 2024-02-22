@@ -36,22 +36,24 @@ export const getUserBooking = async (req: AuthenticatedRequest, res: Response) =
 }
 
 export const getAllTurfs = async (req: Request, res: Response) => {
-    try {
-        const turfs = await db.turf.findMany({
-            include: {
-                turfImages: true
+    // try {
+    //     const turfs = await db.turf.findMany({
+    //         include: {
+    //             turfImages: true
                 
-            }
-        });
+    //         }
+    //     });
 
-        if (turfs.length <= 0) {
-            res.send("No registered turfs found")
-        }
+    //     if (turfs.length <= 0) {
+    //         res.send("No registered turfs found")
+    //     }
 
-        res.status(200).json(turfs)
-    } catch (error) {
-        res.status(401).json(error)
-    }
+    //     res.status(200).json(turfs)
+    // } catch (error) {
+    //     res.status(401).json(error)
+    // }
+
+    await getAllEntities(db.turf, res)
 }
 
 export const getTurfBookings = async (req: Request, res: Response) => {

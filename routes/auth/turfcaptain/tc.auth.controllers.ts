@@ -4,7 +4,7 @@ import passport from "passport";
 import { signUpTc, signinTc, tcAccessRefershToken, tcGoogleAuth } from "./tc.services";
 import { googleAuth } from "../auth.services";
 import { initializeRole } from "@/middlewares/middleware";
-import { Role } from "@/utils/static/types";
+import { Role, RoleRequest } from "@/utils/static/types";
 
 const router = Router();
 initializeRole(router, Role.tc)
@@ -19,4 +19,4 @@ router.get('/google',
     passport.authenticate('google', { scope: ["profile", "email"] })
 )
 
-export default router.use('/tc', router);
+export default router.use('/turf-captain', router);

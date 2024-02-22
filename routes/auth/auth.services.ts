@@ -5,8 +5,7 @@ import { options } from "@/utils/static/cookie.options"
 
 export const googleAuth = async (req: RoleRequest, res: Response) => {
     try {
-
-        console.log(req.user)
+        console.log(req.role)
         const { accessToken, refreshToken } =
             req.role === 'tc' ? (await generateAccessRefreshToken(req.user?.id, true) as any) :
                 (await generateAccessRefreshToken(req.user?.id) as any)

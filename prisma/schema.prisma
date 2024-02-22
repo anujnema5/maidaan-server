@@ -74,7 +74,7 @@ model Turfcaptain {
   id            String    @id @default(cuid())
   fullName      String?
   username      String?
-  email         String?   @unique
+  email         String    @unique
   emailVerified Boolean?  @default(false)
   password      String?
   createdAt     DateTime  @default(now()) @db.Timestamptz(3)
@@ -123,13 +123,14 @@ model Booking {
   turf                Turf           @relation(fields: [turfId], references: [id], onDelete: Cascade)
   user                User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
   bookingDate         DateTime       @db.Date
-  startTime           DateTime       @db.Timetz(0)
-  endTime             DateTime       @db.Timetz(0)
+  startTime           String
+  endTime             String
   slots               Int            @default(1) @db.SmallInt
   totalPlayer         Int            @db.SmallInt
   status              BookingStatus? @default(pending)
   paymentMode         PaymentMode?
   reached             Boolean        @default(false)
+  otpConfirmed        Boolean        @default(false)
   rating              Int?           @db.SmallInt
   review              String?        @db.Text
   bookingDoneAt       DateTime?      @db.Timestamptz(0)

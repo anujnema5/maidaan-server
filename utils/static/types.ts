@@ -11,7 +11,7 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export interface RoleRequest extends Request {
-    role?: Role,
+    role?: string,
     user?: any
 }
 

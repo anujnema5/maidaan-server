@@ -7,25 +7,6 @@ import { Turfcaptain, User } from '@prisma/client';
 import { getTcByEmail, getUserByEmail } from '@/services/user.utils';
 import { RoleRequest } from '@/utils/static/types';
 
-const jwtOptions = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: 'your-secret-key',
-};
-
-passport.use(new JwtStrategy(jwtOptions, async (payload, done) => {
-    try {
-        let user;
-
-        if (user) {
-            return done(null, user);
-        } else {
-            return done(null, false);
-        }
-    } catch (error) {
-        return done(error, false);
-    }
-}));
-
 // Configure Google strategy
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID as string,
@@ -62,10 +43,8 @@ passport.use(new GoogleStrategy({
             }
 
             if (req.role === 'tc') {
-
+                console.log("I am reaching here")
                 const existingTc = await getTcByEmail(email)
-
-                console.log(existingTc)
 
                 if (existingTc) {
                     return done(null, existingTc as Turfcaptain)

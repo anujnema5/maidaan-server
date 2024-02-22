@@ -4,10 +4,10 @@ import passport from "passport";
 import { Role, roles } from "@/services/auth.utils";
 import { googleAuth } from "@/routes/auth/auth.services";
 import { initializeRole } from "@/middlewares/middleware";
+import { RoleRequest } from "@/utils/static/types";
 
 const router = Router();
 initializeRole(router, Role.user)
-
 // CREDENTIALS AUTH
 router.post('/sign-in', signInUser)
 router.post('/sign-up', signUpUser)

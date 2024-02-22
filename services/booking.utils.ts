@@ -2,6 +2,7 @@ import { db } from "@/db"
 import { requestBookingDetails } from "@/utils/static/types"
 import { Turf, Turfcaptain } from "@prisma/client"
 import { Response } from "express"
+import '@/utils/time.convertor'
 
 export const makeBooking = async (requestBookingDetails: requestBookingDetails) => {
     const {
@@ -14,6 +15,8 @@ export const makeBooking = async (requestBookingDetails: requestBookingDetails) 
         turfCaptainId,
         turfId
     } = requestBookingDetails
+
+    // ADD A CHECK FOR TOTAL PLAYER SHOULD NOT BE GREATER THAN TURF'S CAPACITY
 
     const booking = await db.booking.create({
         data: {
@@ -28,13 +31,15 @@ export const makeBooking = async (requestBookingDetails: requestBookingDetails) 
         }
     })
 
+    const combinedDateTime = combineDateAndTime(booking.bookingDate, endTime);
+
     // STORING OTP IN BookingOTP DB
     const otp = Math.floor(Math.random() * 9999).toString()
 
     const bookingOtp = await db.bookingOTP.create({
         data: {
             bookingId: booking.id,
-            expirationDate: booking.endTime,
+            expirationDate: combinedDateTime,
             otp,
         }
     })
@@ -94,11 +99,14 @@ export const isOverLappingBookings = async (upcomingBookingStartTime: any, upcom
  */
 export const isValidDateTime = (
     dateString: string,
-    turfCaptain: any,
+    turfCaptain: Turfcaptain | any,
     bookingStartTime: string,
     bookingEndTime: string,
     res: Response
 ) => {
+
+    console.log("booking start time " + bookingStartTime)
+
     // Input validation
     const inputDate = new Date(dateString);
     const isValidInput = !isNaN(inputDate.getTime());
@@ -118,14 +126,29 @@ export const isValidDateTime = (
 
     // Check if booking time is valid
     const isTimeValid =
-        bookingStartTime >= turfCaptain?.startTime &&
-        bookingStartTime < turfCaptain.endTime &&
-        bookingEndTime < turfCaptain.endTime &&
-        bookingEndTime > turfCaptain?.startTime;
+        bookingStartTime.convertTime() > turfCaptain?.startTime.convertTime()
+    bookingStartTime.convertTime() < turfCaptain.endTime.convertTime()
+        && bookingEndTime.convertTime() < turfCaptain.endTime.convertTime()
+        && bookingEndTime.convertTime() > turfCaptain?.startTime.convertTime();
+
+    // console.log(isTimeValid)
 
     if (!isTimeValid) {
         return res.status(401).json({ error: "Invalid booking time range" });
     }
-
     return isDateValid && isTimeValid;
 };
+
+export const combineDateAndTime = (dateString: any, timeString: string) => {
+    const combinedDate = new Date(dateString);
+  
+    // Split the time string into hours and minutes
+    const [hours, minutes] = timeString.split(':');
+  
+    // Set the hours and minutes of the combined date
+    combinedDate.setHours(Number(hours));
+    combinedDate.setMinutes(Number(minutes));
+  
+    return combinedDate;
+  };
+  

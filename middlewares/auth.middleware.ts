@@ -5,7 +5,7 @@ import { verify, TokenExpiredError } from 'jsonwebtoken';
 
 export const verifyUser = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const token = req.cookies.accessToken || req.body.accessToken || req.header("Authorization")?.replace("Bearer ", "")
-
+    
     if (!token) {
         return res.status(401).json({ message: "Unauthorize request" })
     }
@@ -34,7 +34,7 @@ export const verifyTc = async (req: AuthenticatedRequest, res: Response, next: N
 
     try {
         const decodedToken = verify(token, process.env.TC_ACCESS_TOKEN_SECRET as string) as any
-        const tc = getTcById(decodedToken.id)
+        const tc = await getTcById(decodedToken.id)
 
         req.tc = tc
         next();
@@ -47,3 +47,5 @@ export const verifyTc = async (req: AuthenticatedRequest, res: Response, next: N
         return res.status(401).json({ message: "Suspicious activity detected, someone is attaching a fake token" })
     }
 }
+
+// 

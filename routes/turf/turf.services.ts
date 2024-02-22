@@ -47,24 +47,32 @@ export const getTurfBookings = async (req: Request, res: Response) => {
     }
 }
 
-export const confirmBooking = async (req: Request, res: Response) => {
+export const confirmBooking = async (req: AuthenticatedRequest, res: Response) => {
     try {
+        console.log(req.tc.id)
         const bookingId = req.params.bookingId
+
+        console.log(bookingId)
 
         if (!bookingId) {
             res.status(400).send("Invalid bookingId");
             return;
         }
 
-        const pendingBooking = await getBookingById(bookingId) as Booking
+        // const pendingBooking = await getBookingById(bookingId) as Booking
+        const pendingBooking = await db.booking.findUnique({
+            where: {
+                turfCaptainId: req.tc.id,
+                id: bookingId
+            }
+        })
 
         if (!pendingBooking) {
-            res.status(404).send("Booking not found");
-            return;
+            return res.status(404).send("Booking not found");
         }
 
         if (pendingBooking.status !== 'pending') {
-            res.status(403).send("Booking is not pending; access forbidden");
+            return res.status(403).send("Booking is not pending; access forbidden");
         }
 
         const confirmedBooking = await db.booking.update({
@@ -72,7 +80,7 @@ export const confirmBooking = async (req: Request, res: Response) => {
             data: { status: 'confirmed' }
         })
 
-        res.status(200).json(confirmBooking)
+        return res.status(200).json(confirmedBooking)
     }
 
     catch (error) {
@@ -148,12 +156,56 @@ export const getAllTurfs = async (req: AuthenticatedRequest, res: Response) => {
 }
 
 export const verifyOtp = async (req: AuthenticatedRequest, res: Response) => {
+    const bookingId = req.params.bookingId
+    const otp = req.body.otp
 
+    // GET OTP FROM BODY
+    // SEARCH OTP WITH BOOKINGID
+    // NOW MATCH THE REQUEST OTP AND OTP DB UNDER DB
+    // IF OTP MATCHES THEN CONVERT OTP-CONFIRMED IN THE BOOKING TABLE THEN DELETE THAT OTP
+    // 
+    try {
+        const booking = await getBookingById(bookingId)
+
+        if (!booking) {
+            return res.status(401).json({error: "Booking not found"})
+        }
+
+        const bookingOTP = await db.bookingOTP.findUnique({where: {bookingId}})
+
+        if(bookingOTP?.otp !==otp) {
+            return res.status(400).json({error : "In-correct OTP"})
+        }
+
+        await db.booking.update({
+            where: {
+                id: bookingId
+            },
+
+            data: {
+                otpConfirmed: true,
+                reached: true
+            }
+        })
+
+
+        await db.bookingOTP.delete({where: {bookingId, otp}})
+
+        return res.status(200).json({success: "OTP Confirmed"})
+
+    } catch (error) {
+        return res.status(400).json({error})
+    }
 }
 
 export const editTc = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const tcId = req.tc.id || req.params.id
+
+        if (!tcId) {
+            return res.status(400).json({ error: "TC Id Not Present" })
+        }
+
         const updatedFields = req.body;
 
         if (!updatedFields || Object.keys(updatedFields).length === 0) {
