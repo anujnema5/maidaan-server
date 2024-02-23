@@ -47,5 +47,3 @@ export const verifyTc = async (req: AuthenticatedRequest, res: Response, next: N
         return res.status(401).json({ message: "Suspicious activity detected, someone is attaching a fake token" })
     }
 }
-
-// 

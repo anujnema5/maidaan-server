@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { confirmBooking, createBookingByTc, createTurf, editTc, getAllTurfs, getTcBookings, getTurfBookings, markTurfCaptainOffline, markTurfCaptainOnline, verifyOtp } from "./turf.services";
+import { confirmBooking, createBookingByTc, createTurf, deleteImage, editTc, getAllTurfs, getTcBookings, getTurfBookings, markTurfCaptainOffline, markTurfCaptainOnline, replaceImage, uploadTurfImages, verifyOtp } from "./turf.services";
 import { verifyTc } from "@/middlewares/auth.middleware";
+import { upload } from "@/middlewares/multer.middleware";
 
 const router = Router();
 
@@ -8,7 +9,16 @@ const router = Router();
 router.patch('/edit/', editTc);
 
 // REGISTER / CREATE TURF
-router.post('/register-turf', createTurf);
+router.post('/register-turf', upload.array("turf"), createTurf);
+
+// UPLOAD IMAGES IN TURF
+router.post('/:turfId/upload-images', upload.array("turf"), uploadTurfImages)
+
+// REPLACE THE TURF'S IMAGE WITH A NEW ONE
+router.put('/:turfImageId/replace-image', upload.array("turf"), replaceImage);
+
+// DELETE IMAGE
+router.delete('/:turfImageId/delete-image', deleteImage);
 
 // TURF CAPTAIN BOOKING
 router.get("/turf-captain-bookings", getTcBookings);

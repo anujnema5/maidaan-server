@@ -4,6 +4,7 @@ import { getBookingById, getEntityByField } from "@/services/user.utils";
 import { Booking } from "@prisma/client";
 import { Request, Response } from "express";
 import { getAllEntities } from "@/services/global.utils";
+import { uploadOnCloudinary } from "@/services/cloudinary.utils";
 
 export const getTcBookings = async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -168,13 +169,13 @@ export const verifyOtp = async (req: AuthenticatedRequest, res: Response) => {
         const booking = await getBookingById(bookingId)
 
         if (!booking) {
-            return res.status(401).json({error: "Booking not found"})
+            return res.status(401).json({ error: "Booking not found" })
         }
 
-        const bookingOTP = await db.bookingOTP.findUnique({where: {bookingId}})
+        const bookingOTP = await db.bookingOTP.findUnique({ where: { bookingId } })
 
-        if(bookingOTP?.otp !==otp) {
-            return res.status(400).json({error : "In-correct OTP"})
+        if (bookingOTP?.otp !== otp) {
+            return res.status(400).json({ error: "In-correct OTP" })
         }
 
         await db.booking.update({
@@ -189,12 +190,12 @@ export const verifyOtp = async (req: AuthenticatedRequest, res: Response) => {
         })
 
 
-        await db.bookingOTP.delete({where: {bookingId, otp}})
+        await db.bookingOTP.delete({ where: { bookingId, otp } })
 
-        return res.status(200).json({success: "OTP Confirmed"})
+        return res.status(200).json({ success: "OTP Confirmed" })
 
     } catch (error) {
-        return res.status(400).json({error})
+        return res.status(400).json({ error })
     }
 }
 
@@ -236,6 +237,7 @@ export const createTurf = async (req: AuthenticatedRequest, res: Response) => {
     }
 
     try {
+
         const newTurf = await db.turf.create({
             data: {
                 turfCaptainId: tcId,
@@ -243,11 +245,78 @@ export const createTurf = async (req: AuthenticatedRequest, res: Response) => {
             }
         })
 
-        res.status(200).json(newTurf)
+        if (req.files) {
+            const turfImages = req.files as Express.Multer.File[];
+
+            await Promise.all(
+                turfImages.map(async (file: Express.Multer.File) => {
+                    const response = await uploadOnCloudinary(file.path);
+                    await db.turfImages.create({
+                        data: {
+                            turfId: newTurf.id,
+                            url: response?.url as string
+                        }
+                    })
+                })
+            );
+        }
+
+
+
+        const turfWithImages = await db.turf.findUnique({
+            where: {
+                id: newTurf.id
+            },
+
+            include: {
+                turfImages: true
+            }
+        })
+
+
+        res.status(200).json(turfWithImages)
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "Internal Server Error", error });
     }
+}
+
+export const uploadTurfImages = async (req: AuthenticatedRequest, res: Response) => {
+    // GET THE TC ID
+    // GET THE TURF ID
+    // GET THE PHOTOS
+    // UPLOAD ON CLOUDUINARY
+    // GET THE LINK
+    // UPDATE THE 
+
+    const tcId = req.tc.id;
+
+    try {
+
+    } catch (error) {
+
+    }
+}
+
+export const deleteImage = async (req: AuthenticatedRequest, res: Response) => {
+    // GET THE TC ID
+    // GET THE TURF ID
+    // GET THE PHOTOS
+    // UPLOAD ON CLOUDUINARY
+    // GET THE LINK
+    // UPDATE THE 
+
+    const tcId = req.tc.id;
+
+    try {
+
+    } catch (error) {
+
+    }
+}
+
+export const replaceImage = async (req: AuthenticatedRequest, res: Response) => {
+
 }
 
 export const markTurfCaptainOffline = async (req: AuthenticatedRequest, res: Response) => {

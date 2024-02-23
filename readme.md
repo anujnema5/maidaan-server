@@ -37,3 +37,6 @@
 
 <!-- CONFIRM BOOKING -->
 <!-- http://localhost:8500/api/turf-captain/clsx98h1o00017399ag69v4hs/confirm-booking -->
+
+<!-- DEV -->
+<!-- http://localhost:8500/api/dev/get-all-tcs -->

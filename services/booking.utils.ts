@@ -2,7 +2,7 @@ import { db } from "@/db"
 import { requestBookingDetails } from "@/utils/static/types"
 import { Turf, Turfcaptain } from "@prisma/client"
 import { Response } from "express"
-import '@/utils/time.convertor'
+import '@/services/time.convertor'
 
 export const makeBooking = async (requestBookingDetails: requestBookingDetails) => {
     const {
