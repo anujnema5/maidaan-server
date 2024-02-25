@@ -3,6 +3,8 @@
 2. Fix status code of all error
 3. Clean the code
 4. Integrate for incoming data validation
+5. Add a check if credentila semail signin with google then mark verfified as true
+6. setup avatar apis
 
 ## API Routes
 <!-- AUTH ROUTES  -->
@@ -37,6 +39,9 @@
 
 <!-- CONFIRM BOOKING -->
 <!-- http://localhost:8500/api/turf-captain/clsx98h1o00017399ag69v4hs/confirm-booking -->
+
+<!-- UPLOAD AVATAR -->
+<!-- http://localhost:8500/api/turf-captain/upload-avatar -->
 
 <!-- DEV -->
 <!-- http://localhost:8500/api/dev/get-all-tcs -->

@@ -8,6 +8,7 @@ import { AuthenticatedRequest } from "@/utils/static/types";
 import { options } from "@/utils/static/cookie.options";
 import { User } from "@prisma/client";
 import 'dotenv/config';
+import { uploadOnCloudinary } from "@/services/cloudinary.utils";
 
 export const signInUser = async (req: Request, res: Response) => {
     try {
@@ -42,6 +43,8 @@ export const signInUser = async (req: Request, res: Response) => {
 }
 
 export const signUpUser = async (req: Request, res: Response) => {
+    const avatar = req.file as Express.Multer.File
+
     try {
         const { fullName, username, email, password, phoneNumber } = req.body
 
@@ -59,13 +62,25 @@ export const signUpUser = async (req: Request, res: Response) => {
                 data: { username, fullName, phoneNumber, email, password: hashedPassword }
             })
 
+            let response = null
+            if (avatar) {
+                response = await uploadOnCloudinary(avatar.path)
+            }
+
+            const account = await db.account.create({
+                data: {
+                    userId: newUser.id,
+                    avatar: response?.url || null,
+                }
+            })
+
             const { accessToken, refreshToken } = await generateAccessRefreshToken(newUser.id) as any
 
 
             return res.status(200)
                 .cookie("accessToken", accessToken, options)
                 .cookie("refreshToken", refreshToken, options)
-                .json({ message: "Sucess", user: newUser })
+                .json({ message: "Sucess", user: newUser, account })
         }
     } catch (error) {
         return res.status(400).json({ message: 'Validation failed', errors: error });

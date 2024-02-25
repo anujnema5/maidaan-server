@@ -85,6 +85,7 @@ model Turfcaptain {
   refreshToken  String?   @db.Text
   startTime     String?
   endTime       String?
+  avatar        String?
   status        tcStatus? @default(online)
   turfs         Turf[]
   bookings      Booking[]

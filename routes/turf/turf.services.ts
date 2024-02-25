@@ -8,7 +8,7 @@ import { uploadOnCloudinary } from "@/services/cloudinary.utils";
 
 export const getTcBookings = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const tcId = req.tc.id || req.params.tcId
+        const tcId = req.tc?.id || req.params.tcId
 
         const tcBookings = await db.booking.findMany({
             where: { turfCaptainId: tcId },
@@ -50,7 +50,7 @@ export const getTurfBookings = async (req: Request, res: Response) => {
 
 export const confirmBooking = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        console.log(req.tc.id)
+        console.log(req.tc?.id)
         const bookingId = req.params.bookingId
 
         console.log(bookingId)
@@ -63,7 +63,7 @@ export const confirmBooking = async (req: AuthenticatedRequest, res: Response) =
         // const pendingBooking = await getBookingById(bookingId) as Booking
         const pendingBooking = await db.booking.findUnique({
             where: {
-                turfCaptainId: req.tc.id,
+                turfCaptainId: req.tc?.id,
                 id: bookingId
             }
         })
@@ -139,7 +139,7 @@ export const createBookingByTc = async (req: AuthenticatedRequest, res: Response
 
 export const getAllTurfs = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const turfCaptainId = req.tc.id
+        const turfCaptainId = req.tc?.id
 
         const turfs = await db.turf.findMany({
             where: { turfCaptainId },
@@ -160,11 +160,6 @@ export const verifyOtp = async (req: AuthenticatedRequest, res: Response) => {
     const bookingId = req.params.bookingId
     const otp = req.body.otp
 
-    // GET OTP FROM BODY
-    // SEARCH OTP WITH BOOKINGID
-    // NOW MATCH THE REQUEST OTP AND OTP DB UNDER DB
-    // IF OTP MATCHES THEN CONVERT OTP-CONFIRMED IN THE BOOKING TABLE THEN DELETE THAT OTP
-    // 
     try {
         const booking = await getBookingById(bookingId)
 
@@ -201,7 +196,7 @@ export const verifyOtp = async (req: AuthenticatedRequest, res: Response) => {
 
 export const editTc = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const tcId = req.tc.id || req.params.id
+        const tcId = req.tc?.id || req.params.id
 
         if (!tcId) {
             return res.status(400).json({ error: "TC Id Not Present" })
@@ -229,7 +224,7 @@ export const editTc = async (req: AuthenticatedRequest, res: Response) => {
 }
 
 export const createTurf = async (req: AuthenticatedRequest, res: Response) => {
-    const tcId = req.tc.id || req.params.turfCaptainId
+    const tcId = req.tc?.id || req.params.turfCaptainId
     const turfData = req.body
 
     if (!turfData || typeof turfData !== 'object' || Object.keys(turfData).length === 0) {
@@ -246,21 +241,35 @@ export const createTurf = async (req: AuthenticatedRequest, res: Response) => {
         })
 
         if (req.files) {
+
+            // PERFORM THIS ACTION USING TRANSACTION
             const turfImages = req.files as Express.Multer.File[];
+            // await Promise.all(
+            //     turfImages.map(async (file: Express.Multer.File) => {
+            //         const response = await uploadOnCloudinary(file.path);
+            //         await db.turfImages.create({
+            //             data: {
+            //                 turfId: newTurf.id,
+            //                 url: response?.url as string
+            //             }
+            //         })
+            //     })
+            // );
 
-            await Promise.all(
-                turfImages.map(async (file: Express.Multer.File) => {
-                    const response = await uploadOnCloudinary(file.path);
-                    await db.turfImages.create({
-                        data: {
-                            turfId: newTurf.id,
-                            url: response?.url as string
-                        }
+            await db.$transaction(async (t) => {
+                await Promise.all(
+                    turfImages.map(async (file: Express.Multer.File) => {
+                        const response = await uploadOnCloudinary(file.path);
+                        await t.turfImages.create({
+                            data: {
+                                turfId: newTurf.id,
+                                url: response?.url as string
+                            }
+                        });
                     })
-                })
-            );
+                );
+            });
         }
-
 
 
         const turfWithImages = await db.turf.findUnique({
@@ -287,13 +296,40 @@ export const uploadTurfImages = async (req: AuthenticatedRequest, res: Response)
     // GET THE PHOTOS
     // UPLOAD ON CLOUDUINARY
     // GET THE LINK
-    // UPDATE THE 
+    // UPDATE THE TURF IMAGES
 
-    const tcId = req.tc.id;
+    const tcId = req.tc?.id;
+    const turfId = req.params.turfId
+
+    if (!tcId || !turfId) {
+        return res.status(401).json({ message: "please provide both turf-captain ID and turf ID" })
+    }
+
+    if (!req.files) {
+        return res.status(401).json({ message: "Please provide turf image" })
+    }
 
     try {
+        const turfImages = req.files as Express.Multer.File[]
 
-    } catch (error) {
+        await db.$transaction(async (t) => {
+            await Promise.all(
+                turfImages.map(async (file: Express.Multer.File) => {
+                    const response = await uploadOnCloudinary(file.path)
+                    await t.turfImages.create({
+                        data: {
+                            url: response?.url as string,
+                            turfId: turfId
+                        }
+                    })
+                })
+            )
+        })
+
+        return res.status(200).json({ sucess: "Successfully uploaded images for turf" })
+    }
+
+    catch (error) {
 
     }
 }
@@ -306,12 +342,86 @@ export const deleteImage = async (req: AuthenticatedRequest, res: Response) => {
     // GET THE LINK
     // UPDATE THE 
 
-    const tcId = req.tc.id;
+    const tcId = req.tc?.id;
 
     try {
 
     } catch (error) {
 
+    }
+}
+
+export const uploadAvatar = async (req: AuthenticatedRequest, res: Response) => {
+    console.log(req.tc)
+    const tcId = req.tc?.id
+    const avatar = req.file as Express.Multer.File
+
+    if (!tcId) {
+        return res.status(400).json({ message: 'ID is missing in the request' });
+    }
+
+    if (!avatar) {
+        return res.status(400).json({ message: 'Avatar is missing in the request' });
+    }
+
+    try {
+        const response = await uploadOnCloudinary(avatar.path)
+        const upadtedTcWithAvatar = await db.turfcaptain.update({
+            data: { avatar: response?.url },
+            where: { id: tcId }
+        })
+
+        return res.status(200).json({ data: upadtedTcWithAvatar });
+
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
+export const deleteAvatar = async (req: AuthenticatedRequest, res: Response) => {
+    const tcId = req.tc?.id
+
+    if (!tcId) return res.status(400).json({ message: 'ID is missing in the request' });
+
+    try {
+        const deleteAvatarTc = await db.turfcaptain.update({
+            data: { avatar: null },
+            where: { id: tcId }
+        })
+
+        res.status(200).json({ data: deleteAvatarTc })
+    } catch (error) {
+
+    }
+}
+
+export const changeAvatar = async (req: AuthenticatedRequest, res: Response) => {
+
+    const tcId = req.tc?.id
+    const newAvatar = req.file as Express.Multer.File
+
+    if (!tcId) {
+        return res.status(400).json({ message: 'TC ID is missing in the request' });
+    }
+
+    if (!newAvatar) {
+        return res.status(400).json({ message: 'Avatar is missing in the request' });
+    }
+
+    try {
+        const response = await uploadOnCloudinary(newAvatar.path)
+        const updatedTurfCaptain = await db.turfcaptain.update({
+            data: { avatar: response?.url },
+            where: { id: tcId },
+            select: { password: false }
+        })
+
+        return res.status(200).json({ data: updatedTurfCaptain })
+    } catch (error) {
+        console.log(error)
+        res.status(501).json({error})
     }
 }
 

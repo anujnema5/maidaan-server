@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { confirmBooking, createBookingByTc, createTurf, deleteImage, editTc, getAllTurfs, getTcBookings, getTurfBookings, markTurfCaptainOffline, markTurfCaptainOnline, replaceImage, uploadTurfImages, verifyOtp } from "./turf.services";
+import { changeAvatar, confirmBooking, createBookingByTc, createTurf, deleteAvatar, deleteImage, editTc, getAllTurfs, getTcBookings, getTurfBookings, markTurfCaptainOffline, markTurfCaptainOnline, replaceImage, uploadAvatar, uploadTurfImages, verifyOtp } from "./turf.services";
 import { verifyTc } from "@/middlewares/auth.middleware";
 import { upload } from "@/middlewares/multer.middleware";
 
@@ -7,6 +7,15 @@ const router = Router();
 
 // EDIT TC ACCOUNT
 router.patch('/edit/', editTc);
+
+// CHANGE AVATAR
+router.patch('/change-avatar', upload.single('avatar'), changeAvatar)
+
+// REMOVE AVATAR
+router.patch('/avatar', deleteAvatar)
+
+// UPLOAD AVATAR
+router.patch('/upload-avatar', upload.single('avatar'), uploadAvatar)
 
 // REGISTER / CREATE TURF
 router.post('/register-turf', upload.array("turf"), createTurf);
@@ -35,6 +44,7 @@ router.post("/:turfId/create-booking", createBookingByTc);
 // TODO: Confirm Booking (Add your route details)
 router.post("/:bookingId/confirm-booking", confirmBooking);
 
+// VERIFY OTP VIA USER'S GIVEN OTP
 router.post("/:bookingId/otp-verification", verifyOtp);
 
 // MARK TURF-CAPTAIN AS OFFLINE

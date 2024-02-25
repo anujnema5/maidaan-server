@@ -1,3 +1,4 @@
+import { Turfcaptain, User } from "@prisma/client";
 import { Request } from "express";
 
 export enum Role {

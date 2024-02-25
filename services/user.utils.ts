@@ -9,6 +9,10 @@ export const getUserByEmail = async (email: string) => {
     return await getEntityByField('user', 'email', email);
 }
 
+export const getAccountByUserId = async (id: string) => {
+    return await getEntityByField('account', 'userId', id)
+}
+
 export const deleteUserById = async (id: string) => {
     return await deleteEntityByField('user', 'id', id)
 }
@@ -40,10 +44,10 @@ export const getBookingById = async (id: string) => {
  * @param select 
  * @returns 
  */
-export const getEntityByField = async (entity: 'user' | 'turfcaptain' | 'booking' | 'bookingOTP', field: string, value: string, select = "") => {
+export const getEntityByField = async (entity: 'user' | 'turfcaptain' | 'booking' | 'bookingOTP' | 'account', field: string, value: string, select = "") => {
     try {
 
-        const result = await (db[entity].findFirst as any)({
+        const result = await (db[entity].findUnique as any)({
             where: { [field]: value }
         });
 

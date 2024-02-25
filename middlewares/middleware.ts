@@ -1,5 +1,5 @@
 // middlewares.ts
-import express, { Router } from 'express';
+import express, { NextFunction, Request, Response, Router } from 'express';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import passport from '@/routes/auth/passport-config';
@@ -30,11 +30,25 @@ const initializeMiddlewares = (app: express.Application) => {
     );
 };
 
-export const initializeRole = (router: Router, role: Role) => {
+export const initializeRole = (router: Router, role: string) => {
     router.use((req: RoleRequest, res, next) => {
         req.role = role;
         next();
     });
 };
+
+export const userRole = (req: RoleRequest, res: Response, next: NextFunction) => {
+    const previousUrl = req.headers.referer;
+    console.log(previousUrl)
+    req.role = 'user'
+    next();
+}
+
+export const tcRole = (req: RoleRequest, res: Response, next: NextFunction) => {
+    // const previousUrl = req.headers.referer;
+    // console.log(previousUrl)
+    req.role = 'tc'
+    next();
+}
 
 export default initializeMiddlewares;

@@ -5,6 +5,7 @@ import { isOverLappingBookings, isValidDateTime, makeBooking } from "@/services/
 import { deleteUserById, getUserById } from "@/services/user.utils";
 import { Turf, Turfcaptain } from "@prisma/client";
 import { Request, Response } from "express";
+import { uploadOnCloudinary } from "@/services/cloudinary.utils";
 
 export const createBooking = async (req: AuthenticatedRequest, res: Response) => {
 
@@ -99,5 +100,79 @@ export const deleteUserFromId = async (req: Request, res: Response) => {
 
     } catch (error) {
         res.status(400).json({ message: "Please provide a userID" })
+    }
+}
+
+export const uploadAvatar = async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user?.id
+    const avatar = req.file as Express.Multer.File
+
+    if (!userId) {
+        return res.status(400).json({ message: 'ID is missing in the request' });
+    }
+
+    if (!avatar) {
+        return res.status(400).json({ message: 'Avatar is missing in the request' });
+    }
+
+    try {
+        const response = await uploadOnCloudinary(avatar.path)
+        const upadtedUserWithAvatar = await db.account.update({
+            data: { avatar: response?.url },
+            where: { userId: userId }
+        })
+
+        return res.status(200).json({ data: upadtedUserWithAvatar });
+
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
+export const deleteAvatar = async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user?.id
+
+    if (!userId) return res.status(400).json({ message: 'ID is missing in the request' });
+
+    try {
+        const deleteAvatarUser = await db.account.update({
+            data: { avatar: null },
+            where: { userId: userId }
+        })
+
+        res.status(200).json({ data: deleteAvatarUser })
+    } catch (error) {
+
+    }
+}
+
+export const changeAvatar = async (req: AuthenticatedRequest, res: Response) => {
+
+    const userId = req.user?.id
+    const newAvatar = req.file as Express.Multer.File
+
+    if (!userId) {
+        return res.status(400).json({ message: 'TC ID is missing in the request' });
+    }
+
+    if (!newAvatar) {
+        return res.status(400).json({ message: 'Avatar is missing in the request' });
+    }
+
+    try {
+        const response = await uploadOnCloudinary(newAvatar.path)
+        const updatedUser = await db.account.update({
+            data: { avatar: response?.url },
+            where: { userId: userId }
+        })
+
+        return res.status(200).json({ data: updatedUser })
+    } 
+    
+    catch (error) {
+        console.log(error)
+        res.status(501).json({ error })
     }
 }

@@ -95,5 +95,6 @@ export const getAllusers = async (req: Request, res: Response) => {
 }
 
 export const getAllTcs = async (req: Request, res: Response) => {
+    console.log(req.files?.length)
     await getAllEntities(db.turfcaptain, res)
 }
