@@ -1,19 +1,18 @@
 import { Router } from "express"
-import { createBooking, deleteAvatar, deleteUserFromId, getUserBookings, getUserFromID, uploadAvatar } from "./user.services"
+import { deleteAvatar, deleteUserFromId, getUserFromID, uploadAvatar } from "./user.services"
 import { verifyUser } from "@/middlewares/auth.middleware"
-import { changeAvatar } from "../turf/turf.services";
+import { changeAvatar } from "../turf-captain/turf-captain.services";
+import bookingRoutes from './booking/booking.controllers'
 
 const router = Router()
+router.use(bookingRoutes)
 
 // GET USER BY ID
 router.get('/', getUserFromID);
-router.get('/bookings', getUserBookings);
 
 // DELETE USER FOR PROD 
 router.delete("/", deleteUserFromId);
-
-// CREATE BOOKING
-router.post("/create-booking", createBooking);
+router.patch("/edit") //TODO
 
 router.patch("/change-avatar", changeAvatar);
 router.patch("/upload-avatar", uploadAvatar);

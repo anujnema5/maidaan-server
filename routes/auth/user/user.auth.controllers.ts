@@ -8,8 +8,6 @@ import { RoleRequest } from "@/utils/static/types";
 import { upload } from "@/middlewares/multer.middleware";
 
 const router = Router();
-// initializeRole(router, 'user')
-
 
 router.post('/sign-in', signInUser)
 router.post('/sign-up', upload.single('avatar'), signUpUser)
@@ -20,6 +18,7 @@ router.get('/google',
     passport.authenticate('user-google', { scope: ["profile", "email"] })
 )
 
-router.get(`/google/callback`, passport.authenticate(`user-google`, { session: false }), userGoogleCB)
+router.get(`/google/callback`,
+    passport.authenticate(`user-google`, { session: false }), userGoogleCB)
 
 export default router.use('/user', router);

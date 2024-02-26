@@ -19,6 +19,7 @@ router.get('/google',
     passport.authenticate('tc-google', { scope: ["profile", "email"] })
 )
 
-router.get(`/google/callback`, passport.authenticate(`tc-google`, { session: false }), tcGoogleCB)
+router.get(`/google/callback`,
+    passport.authenticate(`tc-google`, { session: false }), tcGoogleCB)
 
 export default router.use('/tc', router);

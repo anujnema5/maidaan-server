@@ -136,6 +136,7 @@ model Booking {
   review              String?        @db.Text
   bookingDoneAt       DateTime?      @db.Timestamptz(0)
   turfCaptainId       String?
+  cancelledByUser     Boolean?       @default(false)
   turfCaptain         Turfcaptain?   @relation(fields: [turfCaptainId], references: [id], onDelete: Cascade)
   BookingOTP          BookingOTP?
 }

@@ -16,18 +16,4 @@ router.get("/get-all-tcs", getAllTcs);
 router.get("/get-all-turfs", getAllTurfs);
 router.get("/get-all-bookings", getAllBookings);
 
-router.post('/test-upload', upload.array("turf"), async (req, res) => {
-    const files = req.files as Express.Multer.File[];
-
-    const uploadedFiles = await Promise.all(
-        files.map(async (file: Express.Multer.File) => {
-           const res =  await uploadOnCloudinary(file.path);
-            return res
-        })
-    );
-
-    console.log(uploadedFiles);
-    res.json(uploadedFiles);
-});
-
 export default router.use('/dev', router)
