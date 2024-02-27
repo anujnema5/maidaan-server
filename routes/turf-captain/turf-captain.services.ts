@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { AuthenticatedRequest } from "@/utils/static/types";
-import { getBookingById, getEntityByField } from "@/services/user.utils";
+import { deleteTcById, deleteUserById, getBookingById, getEntityByField, getTcById } from "@/services/user.utils";
 import { $Enums, Booking } from "@prisma/client";
 import { Request, Response } from "express";
 import { getAllEntities } from "@/services/global.utils";
@@ -8,6 +8,25 @@ import { uploadOnCloudinary } from "@/services/cloudinary.utils";
 import { ApiError } from "@/utils/ApiError.utils";
 import { ApiResponse } from "@/utils/ApiResponse.utils";
 import { handleResponse, tcResponse } from "@/utils/handleResponse";
+
+export const getTc = async (req: AuthenticatedRequest, res: Response) => {
+    const tcId = req.tc?.id;
+    console.log("reaching here")
+
+    await tcResponse(req, res, async () => {
+        const tc = await getTcById(tcId);
+        return tc;
+    })
+}
+
+export const deleteTc = async (req: AuthenticatedRequest, res: Response) => {
+    const tcId = req.tc?.id;
+
+    await tcResponse(req, res, async () => {
+        const tc = await deleteTcById(tcId);
+        return tc;
+    })
+}
 
 export const editTc = async (req: AuthenticatedRequest, res: Response) => {
     const tcId = req.tc?.id || req.params.id

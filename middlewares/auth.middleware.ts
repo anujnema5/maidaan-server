@@ -3,13 +3,13 @@ import { getTcById, getUserById } from "@/services/user.utils";
 import { NextFunction, Request, Response } from "express";
 import { verify, TokenExpiredError } from 'jsonwebtoken';
 import { Turfcaptain, User } from "@prisma/client";
-import { db } from "@/db";
+import { ApiError } from "@/utils/ApiError.utils";
 
 export const verifyUser = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const token = req.cookies.accessToken || req.body.accessToken || req.header("Authorization")?.replace("Bearer ", "")
 
     if (!token) {
-        return res.status(401).json({ message: "Unauthorize request" })
+        throw new ApiError(401, "Unauthorize request")
     }
 
     try {
@@ -21,7 +21,8 @@ export const verifyUser = async (req: AuthenticatedRequest, res: Response, next:
     } catch (error) {
         if (error instanceof TokenExpiredError) {
             console.log("Token expired")
-            return res.status(401).json({ messge: "Token expired" })
+            throw new ApiError(401, "Token Expired")
+
         }
         return res.status(401).json({ message: "Suspicious activity detected" })
     }
@@ -31,7 +32,7 @@ export const verifyTc = async (req: AuthenticatedRequest, res: Response, next: N
     const token = req.cookies.accessToken || req.body.accessToken || req.header("Authorization")?.replace("Bearer ", "")
 
     if (!token) {
-        return res.status(401).json({ message: "Unauthorize request" })
+        throw new ApiError(401, "Unauthorize request")
     }
 
     try {
@@ -45,7 +46,7 @@ export const verifyTc = async (req: AuthenticatedRequest, res: Response, next: N
     } catch (error) {
         if (error instanceof TokenExpiredError) {
             console.log("Token expired")
-            return res.status(401).json({ messge: "Token expired" })
+            throw new ApiError(401, "Token Expired")
         }
         return res.status(401).json({ message: "Suspicious activity detected, someone is attaching a fake token" })
     }

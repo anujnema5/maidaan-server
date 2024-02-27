@@ -11,7 +11,6 @@ export const uploadOnCloudinary = async (localFilePath: any)=> {
     try {
         if(!localFilePath) return null;
 
-        // upload the file on cloudiary 
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type: 'image'
         })

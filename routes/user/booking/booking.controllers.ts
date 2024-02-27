@@ -3,7 +3,7 @@ import { bookingsStatus, createBooking, getUserBookings, totalPlays } from "./bo
 
 const router = Router();
 
-router.get('/bookings', getUserBookings);
+router.get('/', getUserBookings);
 router.post("/create-booking", createBooking);
 
 router.get("/total-plays", totalPlays)

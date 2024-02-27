@@ -3,7 +3,9 @@ import {
     changeAvatar,
     changeTurfCaptainStatus,
     deleteAvatar,
+    deleteTc,
     editTc,
+    getTc,
     totalGroundPlays,
     uploadAvatar
 } from "./turf-captain.services";
@@ -19,8 +21,8 @@ const router = Router();
 router.use(bookingRoutes)
 router.use(turfRoutes)
 
-router.get("/")
-router.delete("/");
+router.get("/",  getTc)
+router.delete("/", deleteTc);
 
 // EDIT TC ACCOUNT
 router.patch('/edit/', editTc);

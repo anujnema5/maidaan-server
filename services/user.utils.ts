@@ -21,6 +21,10 @@ export const getTcById = async (id: string) => {
     return await getEntityByField('turfcaptain', 'id', id);
 }
 
+export const deleteTcById = async (id: string) => {
+    return await deleteEntityByField('user', 'id', id)
+}
+
 export const getTurfById = async (id: string) => {
     return await getEntityByField('turf', 'id', id)
 }

@@ -6,10 +6,10 @@ import devRoutes from '@/routes/dev/dev.controllers'
 import sportsRoutes from '@/routes/sports/sports.controllers'
 
 const api = Router()
+    .use(turfRoutes)
     .use(sportsRoutes)
     .use(authRoute)
     .use(userRoutes)
-    .use(turfRoutes)
     .use(devRoutes) //DEV PURPOSE ONLY
 
 export default api.use('/api', api)
