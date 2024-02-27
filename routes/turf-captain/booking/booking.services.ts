@@ -2,15 +2,15 @@ import { db } from "@/db"
 import { getBookingById } from "@/services/user.utils"
 import { ApiError } from "@/utils/ApiError.utils"
 import { ApiResponse } from "@/utils/ApiResponse.utils"
-import { handleResponse } from "@/utils/handleResponse"
+import { handleResponse, tcResponse } from "@/utils/handleResponse"
 import { AuthenticatedRequest } from "@/utils/static/types"
-import { tryCatchHandler } from "@/utils/tryCatchHandler"
+import { $Enums } from "@prisma/client"
 import { Response } from "express"
 
 export const getTcBookings = async (req: AuthenticatedRequest, res: Response) => {
     const tcId = req.tc?.id || req.params.tcId
 
-    handleResponse(res, async () => {
+    await tcResponse(req, res, async () => {
         const tcBookings = await db.booking.findMany({
             where: { turfCaptainId: tcId },
             include: {
@@ -32,8 +32,7 @@ export const getTcBookings = async (req: AuthenticatedRequest, res: Response) =>
 export const getTurfBookings = async (req: AuthenticatedRequest, res: Response) => {
     const turfId = req.params.turfId
 
-    handleResponse(res, async () => {
-
+    await tcResponse(req, res, async () => {
         const turfBookings = await db.booking.findMany({
             where: { turfId },
             include: {
@@ -48,7 +47,7 @@ export const getTurfBookings = async (req: AuthenticatedRequest, res: Response) 
 }
 
 export const confirmBooking = async (req: AuthenticatedRequest, res: Response) => {
-    tryCatchHandler(res, async () => {
+    await tcResponse(req, res, async () => {
 
         const bookingId = req.params.bookingId
 
@@ -77,7 +76,7 @@ export const confirmBooking = async (req: AuthenticatedRequest, res: Response) =
             data: { status: 'confirmed' }
         })
 
-        return res.status(200).json(new ApiResponse(200, confirmedBooking))
+        return confirmedBooking
 
     })
 }
@@ -86,7 +85,7 @@ export const verifyOtp = async (req: AuthenticatedRequest, res: Response) => {
     const bookingId = req.params.bookingId
     const otp = req.body.otp
 
-    try {
+    await tcResponse(req, res, async () => {
         const booking = await getBookingById(bookingId)
 
         if (!booking) {
@@ -113,22 +112,24 @@ export const verifyOtp = async (req: AuthenticatedRequest, res: Response) => {
 
         await db.bookingOTP.delete({ where: { bookingId, otp } })
 
-        return res.status(200).json({ success: "OTP Confirmed" })
+        return { success: "OTP Confirmed" }
 
-    } catch (error) {
-        return res.status(400).json({ error })
-    }
+    })
 }
 
 export const createBookingByTc = async (req: AuthenticatedRequest, res: Response) => {
     const { turfId, bookingDate, startTime, endTime, slots, totalPlayer } = req.body
-    const tc = await req.tc;
 
-    try {
+    if (!turfId || !bookingDate || !startTime || !endTime || !slots || !totalPlayer) {
+        throw new ApiError(400, "Missing required fields in the request")
+    }
+
+    await tcResponse(req, res, async () => {
+
         const turf = await db.turf.findUnique({ where: { id: turfId }, })
 
         if (!turf) {
-            res.status(401).json("Turf with this ID does not exist, Please make a turf")
+            throw new ApiError(400, "Turf with this ID does not exist, Please make a turf")
         }
 
         // TO-DO: IMPLEMENT A CHECK WHERE USER CANNOT HAVE DATE BEFORE PRESENT DATE
@@ -158,74 +159,25 @@ export const createBookingByTc = async (req: AuthenticatedRequest, res: Response
             }
         })
 
-        console.log("Reaching here ", booking)
-
-        return res.status(200).json(booking)
-
-    } catch (error) {
-        console.log(error)
-    }
+        return booking
+    })
 }
 
-export const confirmedBookings = async (req: AuthenticatedRequest, res: Response) => {
-    const tcId = req.tc?.id;
+export const bookingStatus = (status: $Enums.BookingStatus) => {
+    return (req: AuthenticatedRequest, res: Response) => {
+        const tcId = req.tc?.id;
 
-    if (!tcId) {
-        return new ApiError(401, "TC ID Does not exist");
-    }
+        if (!tcId) {
+            return new ApiError(401, "TC ID Does not exist");
+        }
 
-    try {
-        const bookings = await db.booking.findMany({
-            where: { turfCaptainId: tcId, status: 'confirmed' }
+        handleResponse(res, async () => {
+            const bookings = await db.booking.findMany({
+                where: { turfCaptainId: tcId, status: status }
+            })
+
+            return bookings
+
         })
-
-        return res.status(200).json(new ApiResponse(200, bookings))
-    }
-
-    catch (error) {
-        console.log(error)
-        throw new ApiError(500, "Something went wrong while fetching confirmed bookings")
-    }
-}
-
-export const pendingBookings = async (req: AuthenticatedRequest, res: Response) => {
-    const tcId = req.tc?.id;
-
-    if (!tcId) {
-        return new ApiError(401, "TC ID Does not exist");
-    }
-
-    try {
-        const bookings = await db.booking.findMany({
-            where: { turfCaptainId: tcId, status: 'pending' }
-        })
-
-        return res.status(200).json(new ApiResponse(200, bookings))
-    }
-
-    catch (error) {
-        console.log(error)
-        throw new ApiError(500, "Something went wrong while fetching pending bookings")
-    }
-}
-
-export const cancelledBookings = async (req: AuthenticatedRequest, res: Response) => {
-    const tcId = req.tc?.id;
-
-    if (!tcId) {
-        return new ApiError(401, "TC ID Does not exist");
-    }
-
-    try {
-        const bookings = await db.booking.findMany({
-            where: { turfCaptainId: tcId, status: 'rejected' }
-        })
-
-        return res.status(200).json(new ApiResponse(200, bookings))
-    }
-
-    catch (error) {
-        console.log(error)
-        throw new ApiError(500, "Something went wrong while fetching pending bookings")
     }
 }

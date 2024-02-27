@@ -1,12 +1,14 @@
 import { db } from "@/db";
 import { uploadOnCloudinary } from "@/services/cloudinary.utils";
+import { getEntityByField, getTurfById } from "@/services/user.utils";
 import { ApiError } from "@/utils/ApiError.utils";
 import { ApiResponse } from "@/utils/ApiResponse.utils";
+import { tcResponse } from "@/utils/handleResponse";
 import { AuthenticatedRequest } from "@/utils/static/types";
 import { Response } from "express";
 
 export const getAllTurfs = async (req: AuthenticatedRequest, res: Response) => {
-    try {
+    await tcResponse(req, res, async () => {
         const turfCaptainId = req.tc?.id
 
         const turfs = await db.turf.findMany({
@@ -14,25 +16,19 @@ export const getAllTurfs = async (req: AuthenticatedRequest, res: Response) => {
             include: { turfImages: true }
         });
 
-        if (turfs.length <= 0) {
-            res.send("No registered turfs found")
-        }
-
-        res.status(200).json(turfs)
-    } catch (error) {
-        res.status(401).json(error)
-    }
+        return turfs;
+    })
 }
 
 export const createTurf = async (req: AuthenticatedRequest, res: Response) => {
-    const tcId = req.tc?.id || req.params.turfCaptainId
-    const turfData = req.body
 
-    if (!turfData || typeof turfData !== 'object' || Object.keys(turfData).length === 0) {
-        return res.status(400).json({ message: "Invalid request body" });
-    }
+    await tcResponse(req, res, async () => {
+        const tcId = req.tc?.id || req.params.turfCaptainId
+        const turfData = req.body
 
-    try {
+        if (!turfData || typeof turfData !== 'object' || Object.keys(turfData).length === 0) {
+            throw new ApiError(400, "Invalid request body")
+        }
 
         const newTurf = await db.turf.create({
             data: {
@@ -41,21 +37,9 @@ export const createTurf = async (req: AuthenticatedRequest, res: Response) => {
             }
         })
 
-        if (req.files) {
 
-            // PERFORM THIS ACTION USING TRANSACTION
-            const turfImages = req.files as Express.Multer.File[];
-            // await Promise.all(
-            //     turfImages.map(async (file: Express.Multer.File) => {
-            //         const response = await uploadOnCloudinary(file.path);
-            //         await db.turfImages.create({
-            //             data: {
-            //                 turfId: newTurf.id,
-            //                 url: response?.url as string
-            //             }
-            //         })
-            //     })
-            // );
+        const turfImages = req.files as Express.Multer.File[];
+        if (turfImages) {
 
             await db.$transaction(async (t) => {
                 await Promise.all(
@@ -84,29 +68,21 @@ export const createTurf = async (req: AuthenticatedRequest, res: Response) => {
         })
 
 
-        res.status(200).json(turfWithImages)
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({ message: "Internal Server Error", error });
-    }
+        return turfWithImages
+    })
 }
 
 export const uploadTurfImages = async (req: AuthenticatedRequest, res: Response) => {
-
-    const tcId = req.tc?.id;
     const turfId = req.params.turfId
 
-    if (!tcId || !turfId) {
-        return res.status(401).json({ message: "please provide both turf-captain ID and turf ID" })
+    const turfImages = req.files as Express.Multer.File[]
+
+    if (!turfImages) {
+        throw new ApiError(401, "please provide turf Images")
+
     }
 
-    if (!req.files) {
-        return res.status(401).json({ message: "Please provide turf image" })
-    }
-
-    try {
-        const turfImages = req.files as Express.Multer.File[]
-
+    await tcResponse(req, res, async () => {
         await db.$transaction(async (t) => {
             await Promise.all(
                 turfImages.map(async (file: Express.Multer.File) => {
@@ -121,22 +97,14 @@ export const uploadTurfImages = async (req: AuthenticatedRequest, res: Response)
             )
         })
 
-        return res.status(200).json({ sucess: "Successfully uploaded images for turf" })
-    }
-
-    catch (error) {
-
-    }
+        const turf = await getTurfById(turfId)
+        return turf;
+    })
 }
 
 export const replaceTurfImage = async (req: AuthenticatedRequest, res: Response) => {
-    const tcId = req.tc?.id;
     const imageId = req.params.turfImageId;
     const newTurfImage = req.file as Express.Multer.File
-
-    if (!tcId) {
-        return new ApiError(401, "TC ID Does not exist");
-    }
 
     if (!imageId) {
         return new ApiError(401, "Image ID is missing");
@@ -146,70 +114,42 @@ export const replaceTurfImage = async (req: AuthenticatedRequest, res: Response)
         return new ApiError(401, "Turf's Input Image is missing");
     }
 
-    try {
+    await tcResponse(req, res, async () => {
         const response = await uploadOnCloudinary(newTurfImage.path);
         const updatedImage = await db.turfImages.update({
             data: { url: response?.url },
             where: { id: imageId }
         })
 
-        return res.status(200).json(new ApiResponse(200, updatedImage, "Image Updated Successfully"))
-    }
-
-    catch (error) {
-        console.log(error)
-        return new ApiError(500, "Something went wrong");
-
-    }
+        return updatedImage
+    })
 }
 
 export const deleteImage = async (req: AuthenticatedRequest, res: Response) => {
-    const tcId = req.tc?.id;
     const imageId = req.params.turfImageId;
-
-    if (!tcId) {
-        return new ApiError(401, "TC ID Does not exist");
-    }
 
     if (!imageId) {
         return new ApiError(401, "Image ID is missing");
     }
 
-    try {
+    await tcResponse(req, res, async () => {
         const deletedImage = await db.turfImages.delete({
             where: { id: imageId }
         })
 
-        return res.status(200).json(new ApiResponse(200, deletedImage, "Image Deleted Successfully"))
-    }
-
-    catch (error) {
-        console.log(error)
-        return new ApiError(500, "Something went wrong");
-
-    }
+        return deletedImage;
+    })
 }
 
 export const totalTurfPlays = async (req: AuthenticatedRequest, res: Response) => {
-    const tcId = req.tc?.id;
     const turfId = req.params.turfImageId;
 
-    if (!tcId) {
-        return new ApiError(401, "TC ID Does not exist");
-    }
-
-    if (!turfId) {
-        return new ApiError(401, "Turf ID is missing");
-    }
-
-    try {
+    await tcResponse(req, res, async () => {
+        
         const totalPlays = await db.booking.findMany({
             where: { turfId, status: 'confirmed', reached: true, otpConfirmed: true }
         })
-
-        return res.status(200).json(new ApiResponse(200, totalPlays))
-    } catch (error) {
-        console.log(error)
-        return new ApiError(500, "Something went wrong");
-    }
+        
+        return totalPlays;
+    })
 } 

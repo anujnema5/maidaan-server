@@ -5,7 +5,7 @@ import { AuthenticatedRequest } from "@/utils/static/types"
 import { Request, Response } from "express"
 
 export const getAllusersWithBookings = async (req: Request, res: Response) => {
-    handleResponse(res, async () => {
+    await handleResponse(res, async () => {
         const users = await db.user.findMany({
             include: {
                 Bookings: true
@@ -19,7 +19,7 @@ export const getAllusersWithBookings = async (req: Request, res: Response) => {
 export const getUserBooking = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user.id || req.params.userId
 
-    handleResponse(res, async () => {
+    await handleResponse(res, async () => {
         const user = await db.user.findUnique({
             where: { id: userId },
             include: { Bookings: true }
@@ -53,7 +53,7 @@ export const getTurfBookings = async (req: Request, res: Response) => {
 
 export const getAllBookings = async (req: Request, res: Response) => {
 
-    handleResponse(res, async () => {
+    await handleResponse(res, async () => {
         const bookings = await db.booking.findMany({
             include: {
                 user: {

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { cancelledBookings, confirmBooking, confirmedBookings, createBookingByTc, getTcBookings, getTurfBookings, pendingBookings, verifyOtp } from "./booking.services";
+import { bookingStatus, confirmBooking, createBookingByTc, getTcBookings, getTurfBookings, verifyOtp } from "./booking.services";
 
 const router = Router();
 
@@ -14,8 +14,8 @@ router.patch("/:bookingId/otp-verification", verifyOtp);
 
 router.post("/:turfId/create-booking", createBookingByTc);
 
-router.get('/pending-bookings', pendingBookings)
-router.get('/confirmed-bookings', confirmedBookings)
-router.get('/cancelled-bookings', cancelledBookings)
+router.get('/pending-bookings', bookingStatus('pending'))
+router.get('/confirmed-bookings', bookingStatus('confirmed'))
+router.get('/cancelled-bookings', bookingStatus('rejected'))
 
 export default router.use('/booking',  router)

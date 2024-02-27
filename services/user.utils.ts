@@ -21,6 +21,10 @@ export const getTcById = async (id: string) => {
     return await getEntityByField('turfcaptain', 'id', id);
 }
 
+export const getTurfById = async (id: string) => {
+    return await getEntityByField('turf', 'id', id)
+}
+
 export const getTcByEmail = async (email: string) => {
     return await getEntityByField('turfcaptain', 'email', email);
 }
@@ -44,7 +48,7 @@ export const getBookingById = async (id: string) => {
  * @param select 
  * @returns 
  */
-export const getEntityByField = async (entity: 'user' | 'turfcaptain' | 'booking' | 'bookingOTP' | 'account', field: string, value: string, select = "") => {
+export const getEntityByField = async (entity: 'user' | 'turfcaptain' | 'booking' | 'bookingOTP' | 'account' | 'turf', field: string, value: string, select = "") => {
     try {
 
         const result = await (db[entity].findUnique as any)({

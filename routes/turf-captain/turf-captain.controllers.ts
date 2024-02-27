@@ -1,10 +1,9 @@
 import { Router } from "express";
 import {
     changeAvatar,
+    changeTurfCaptainStatus,
     deleteAvatar,
     editTc,
-    markTurfCaptainOffline,
-    markTurfCaptainOnline,
     totalGroundPlays,
     uploadAvatar
 } from "./turf-captain.services";
@@ -32,8 +31,8 @@ router.patch('/delete-avatar', deleteAvatar)
 router.patch('/upload-avatar', upload.single('avatar'), uploadAvatar)
 
 // MANAGE STATUS
-router.post('/mark-offline', markTurfCaptainOffline)
-router.post('/mark-online', markTurfCaptainOnline)
+router.post('/mark-offline', changeTurfCaptainStatus('offline'))
+router.post('/mark-online', changeTurfCaptainStatus('online'))
 
 router.get("/total-plays", totalGroundPlays)
 
