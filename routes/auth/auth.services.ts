@@ -2,6 +2,7 @@ import { AuthenticatedRequest, RoleRequest } from "@/utils/static/types"
 import { Response } from "express"
 import { generateAccessRefreshToken } from "./token.utils"
 import { options } from "@/utils/static/cookie.options"
+import { ApiResponse } from "@/utils/ApiResponse.utils"
 
 export const tcGoogleCB = async (req: RoleRequest, res: Response) => {
     try {
@@ -10,7 +11,7 @@ export const tcGoogleCB = async (req: RoleRequest, res: Response) => {
         return res.status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
-            .json({ accessToken })
+            .json(new ApiResponse(200, accessToken))
     }
 
     catch (error) {
@@ -25,7 +26,7 @@ export const userGoogleCB = async (req: RoleRequest, res: Response) => {
         return res.status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
-            .json({ accessToken })
+            .json(new ApiResponse(200, accessToken))
     }
 
     catch (error) {

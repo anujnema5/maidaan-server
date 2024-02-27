@@ -9,6 +9,8 @@ import { options } from "@/utils/static/cookie.options";
 import { User } from "@prisma/client";
 import 'dotenv/config';
 import { uploadOnCloudinary } from "@/services/cloudinary.utils";
+import { ApiResponse } from "@/utils/ApiResponse.utils";
+import { ApiError } from "@/utils/ApiError.utils";
 
 export const signInUser = async (req: Request, res: Response) => {
     try {
@@ -32,13 +34,12 @@ export const signInUser = async (req: Request, res: Response) => {
         return res.status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
-            .json({ accessToken })
+            .json(new ApiResponse(200, accessToken))
 
 
     } catch (error) {
         console.log(error);
-
-        return res.status(200).json(error)
+        return new ApiError(500, "Something went wrong")
     }
 }
 
@@ -58,6 +59,7 @@ export const signUpUser = async (req: Request, res: Response) => {
 
             const hashedPassword = await bcrypt.hash(password, 10)
 
+            // WRAP THE WHOLE PROCESS IN TRANSACTION
             const newUser = await db.user.create({
                 data: { username, fullName, phoneNumber, email, password: hashedPassword }
             })
@@ -80,7 +82,7 @@ export const signUpUser = async (req: Request, res: Response) => {
             return res.status(200)
                 .cookie("accessToken", accessToken, options)
                 .cookie("refreshToken", refreshToken, options)
-                .json({ message: "Sucess", user: newUser, account })
+                .json(new ApiResponse(200, { user: newUser, account }))
         }
     } catch (error) {
         return res.status(400).json({ message: 'Validation failed', errors: error });
@@ -118,7 +120,7 @@ export const userAccessRefershToken = async (req: Request, res: Response) => {
             .status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
-            .json({ accessToken, message: "Accesstoken refreshed" })
+            .json(new ApiResponse(200, accessToken, "Token refreshed"))
 
     } catch (error) {
         return res.status(401).json({ message: "non-valid refresh token", error })

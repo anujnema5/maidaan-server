@@ -1,58 +1,35 @@
 import { db } from "@/db"
 import { getAllEntities } from "@/services/global.utils"
+import { handleResponse } from "@/utils/handleResponse"
 import { AuthenticatedRequest } from "@/utils/static/types"
 import { Request, Response } from "express"
 
 export const getAllusersWithBookings = async (req: Request, res: Response) => {
-    // API CREATED FOR DEV PURPOSE
-
-    try {
+    handleResponse(res, async () => {
         const users = await db.user.findMany({
             include: {
                 Bookings: true
             }
         })
 
-        res.status(200).json(users)
-    } catch (error) {
-        console.log(error)
-    }
+        return users;
+    })
 }
 
 export const getUserBooking = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user.id || req.params.userId
 
-    try {
+    handleResponse(res, async () => {
         const user = await db.user.findUnique({
             where: { id: userId },
             include: { Bookings: true }
         })
 
-        return res.status(200).json(user)
-
-    } catch (error) {
-
-    }
+        return user;
+    })
 }
 
 export const getAllTurfs = async (req: Request, res: Response) => {
-    // try {
-    //     const turfs = await db.turf.findMany({
-    //         include: {
-    //             turfImages: true
-                
-    //         }
-    //     });
-
-    //     if (turfs.length <= 0) {
-    //         res.send("No registered turfs found")
-    //     }
-
-    //     res.status(200).json(turfs)
-    // } catch (error) {
-    //     res.status(401).json(error)
-    // }
-
     await getAllEntities(db.turf, res)
 }
 
@@ -75,18 +52,23 @@ export const getTurfBookings = async (req: Request, res: Response) => {
 }
 
 export const getAllBookings = async (req: Request, res: Response) => {
-    try {
+
+    handleResponse(res, async () => {
         const bookings = await db.booking.findMany({
-            select: {
-                user: true
-            }
+            include: {
+                user: {
+                    select: {
+                        password: false,
+                        refreshToken: false,
+                        fullName: true,
+                        id: true
+                    }
+                }
+            },
         })
 
-        res.status(200).json(bookings)
-
-    } catch (error) {
-        console.log(error)
-    }
+        return bookings
+    })
 }
 
 export const getAllusers = async (req: Request, res: Response) => {

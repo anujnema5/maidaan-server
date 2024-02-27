@@ -9,6 +9,8 @@ import { AuthenticatedRequest } from "@/utils/static/types";
 import { options } from "@/utils/static/cookie.options";
 import { Prisma, Turfcaptain } from "@prisma/client";
 import { getAllEntities } from "@/services/global.utils";
+import { ApiResponse } from "@/utils/ApiResponse.utils";
+import { ApiError } from "@/utils/ApiError.utils";
 
 export const signinTc = async (req: Request, res: Response) => {
     try {
@@ -44,12 +46,12 @@ export const signinTc = async (req: Request, res: Response) => {
         return res.status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
-            .json({ accessToken })
+            .json(new ApiResponse(200, accessToken))
 
 
     } catch (error) {
         console.log(error);
-        return res.status(200).json(error)
+        return new ApiError(500, "Something went wrong")
     }
 }
 
@@ -78,12 +80,12 @@ export const signUpTc = async (req: Request, res: Response) => {
         return res.status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
-            .json({ user: newTurfCaptain })
+            .json(new ApiResponse(200, newTurfCaptain))
 
     }
 
     catch (error) {
-        return res.status(400).json({ message: 'Validation failed', error });
+        return new ApiError(500, "Something went wrong")
     }
 }
 
@@ -123,10 +125,10 @@ export const tcAccessRefershToken = async (req: Request, res: Response) => {
             .status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
-            .json({ accessToken, message: "Accesstoken refreshed" })
+            .json(new ApiResponse(200, accessToken, "Accesstoken refreshed"))
 
     } catch (error) {
-        return res.status(401).json({ message: "non-valid refresh token", error })
+        return new ApiError(500, "Something went wrong")
     }
 }
 
@@ -138,10 +140,10 @@ export const tcGoogleAuth = async (req: AuthenticatedRequest, res: Response) => 
         return res.status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
-            .json({ accessToken })
+            .json(new ApiResponse(200, accessToken))
     }
 
     catch (error) {
-        return res.status(401).json(error)
+        return new ApiError(500, "Something went wrong")
     }
 }

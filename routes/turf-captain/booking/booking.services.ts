@@ -2,13 +2,15 @@ import { db } from "@/db"
 import { getBookingById } from "@/services/user.utils"
 import { ApiError } from "@/utils/ApiError.utils"
 import { ApiResponse } from "@/utils/ApiResponse.utils"
+import { handleResponse } from "@/utils/handleResponse"
 import { AuthenticatedRequest } from "@/utils/static/types"
+import { tryCatchHandler } from "@/utils/tryCatchHandler"
 import { Response } from "express"
 
 export const getTcBookings = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        const tcId = req.tc?.id || req.params.tcId
+    const tcId = req.tc?.id || req.params.tcId
 
+    handleResponse(res, async () => {
         const tcBookings = await db.booking.findMany({
             where: { turfCaptainId: tcId },
             include: {
@@ -22,16 +24,15 @@ export const getTcBookings = async (req: AuthenticatedRequest, res: Response) =>
                 }
             }
         })
-        res.status(200).json(tcBookings)
 
-    } catch (error) {
-        console.log(error)
-    }
+        return tcBookings;
+    })
 }
 
 export const getTurfBookings = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        const turfId = req.params.turfId
+    const turfId = req.params.turfId
+
+    handleResponse(res, async () => {
 
         const turfBookings = await db.booking.findMany({
             where: { turfId },
@@ -41,22 +42,18 @@ export const getTurfBookings = async (req: AuthenticatedRequest, res: Response) 
             }
         })
 
-        res.status(200).json(turfBookings)
-    } catch (error) {
-        console.log(error)
-    }
+        return turfBookings;
+    })
+
 }
 
 export const confirmBooking = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        console.log(req.tc?.id)
+    tryCatchHandler(res, async () => {
+
         const bookingId = req.params.bookingId
 
-        console.log(bookingId)
-
         if (!bookingId) {
-            res.status(400).send("Invalid bookingId");
-            return;
+            throw new ApiError(400, "Invalid bookingId")
         }
 
         // const pendingBooking = await getBookingById(bookingId) as Booking
@@ -68,11 +65,11 @@ export const confirmBooking = async (req: AuthenticatedRequest, res: Response) =
         })
 
         if (!pendingBooking) {
-            return res.status(404).send("Booking not found");
+            throw new ApiError(404, "Booking not found")
         }
 
         if (pendingBooking.status !== 'pending') {
-            return res.status(403).send("Booking is not pending; access forbidden");
+            throw new ApiError(403, "Booking is not pending; access forbidden")
         }
 
         const confirmedBooking = await db.booking.update({
@@ -80,13 +77,9 @@ export const confirmBooking = async (req: AuthenticatedRequest, res: Response) =
             data: { status: 'confirmed' }
         })
 
-        return res.status(200).json(confirmedBooking)
-    }
+        return res.status(200).json(new ApiResponse(200, confirmedBooking))
 
-    catch (error) {
-        console.log(error)
-        res.status(500).send("Internal Server Error");
-    }
+    })
 }
 
 export const verifyOtp = async (req: AuthenticatedRequest, res: Response) => {
