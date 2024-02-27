@@ -13,4 +13,4 @@ router.delete('/:turfImageId/delete-image', deleteImage);
 
 router.get('/:turfId/total-plays', totalTurfPlays)
 
-export default router.use("/turf", router)
+export default router;

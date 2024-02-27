@@ -11,4 +11,4 @@ router.get("/confirmed-bookings", bookingsStatus('confirmed'))
 router.get("/pending-bookings", bookingsStatus('pending'))
 router.get("/cancelled-bookings", bookingsStatus('rejected'))
 
-export default router.use("/booking", router)
+export default router;

@@ -18,4 +18,4 @@ router.get('/pending-bookings', bookingStatus('pending'))
 router.get('/confirmed-bookings', bookingStatus('confirmed'))
 router.get('/cancelled-bookings', bookingStatus('rejected'))
 
-export default router.use('/booking',  router)
+export default router

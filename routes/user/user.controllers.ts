@@ -5,7 +5,7 @@ import { changeAvatar } from "../turf-captain/turf-captain.services";
 import bookingRoutes from './booking/booking.controllers'
 
 const router = Router()
-router.use(bookingRoutes)
+router.use("/booking", bookingRoutes)
 
 // GET USER BY ID
 router.get('/', getUserFromID);

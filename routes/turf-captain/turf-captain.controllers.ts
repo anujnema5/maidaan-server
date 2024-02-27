@@ -18,13 +18,11 @@ import turfRoutes from './turf/turf.controllers'
 const router = Router();
 
 // BOOKINGS AND TURF ROUTES
-router.use(bookingRoutes)
-router.use(turfRoutes)
+router.use("/booking", bookingRoutes)
+router.use("/turf", turfRoutes)
 
 router.get("/",  getTc)
 router.delete("/", deleteTc);
-
-// EDIT TC ACCOUNT
 router.patch('/edit/', editTc);
 
 // AVATAR
