@@ -3,6 +3,7 @@ import { requestBookingDetails } from "@/utils/static/types"
 import { Turf, Turfcaptain } from "@prisma/client"
 import { Response } from "express"
 import '@/services/time.convertor'
+import { ApiError } from "@/utils/ApiError.utils"
 
 export const makeBooking = async (requestBookingDetails: requestBookingDetails) => {
     const {
@@ -105,14 +106,12 @@ export const isValidDateTime = (
     res: Response
 ) => {
 
-    console.log("booking start time " + bookingStartTime)
-
     // Input validation
     const inputDate = new Date(dateString);
     const isValidInput = !isNaN(inputDate.getTime());
 
     if (!isValidInput) {
-        return res.status(400).json({ error: "Invalid date format" });
+        throw new ApiError(400, "Invalid date format")
     }
 
     const presentDate = new Date();
@@ -121,7 +120,7 @@ export const isValidDateTime = (
     const isDateValid = inputDate >= presentDate;
 
     if (!isDateValid) {
-        return res.status(401).json({ error: "Booking date cannot be in the past" });
+        throw new ApiError(400, "Booking date cannot be in the past")
     }
 
     // Check if booking time is valid
@@ -134,7 +133,7 @@ export const isValidDateTime = (
     // console.log(isTimeValid)
 
     if (!isTimeValid) {
-        return res.status(401).json({ error: "Invalid booking time range" });
+        throw new ApiError(400, "Invalid booking time range")
     }
     return isDateValid && isTimeValid;
 };

@@ -7,6 +7,7 @@ import { Turf, Turfcaptain } from "@prisma/client";
 import { Request, Response } from "express";
 import { uploadOnCloudinary } from "@/services/cloudinary.utils";
 import { userResponse } from "@/utils/handleResponse";
+import { ApiError } from "@/utils/ApiError.utils";
 
 export const getUser = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user.id || req.params.userId
@@ -59,7 +60,7 @@ export const changeAvatar = async (req: AuthenticatedRequest, res: Response) => 
     const newAvatar = req.file as Express.Multer.File
 
     if (!newAvatar) {
-        return res.status(400).json({ message: 'Avatar is missing in the request' });
+        throw new ApiError(401, "Avatar is missing in the request")
     }
 
     await userResponse(req, res, async () => {

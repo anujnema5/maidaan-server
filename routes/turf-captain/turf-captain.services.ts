@@ -76,13 +76,12 @@ export const deleteAvatar = async (req: AuthenticatedRequest, res: Response) => 
 }
 
 export const changeAvatar = async (req: AuthenticatedRequest, res: Response) => {
-
     await tcResponse(req, res, async () => {
         const tcId = req.tc?.id;
         const newAvatar = req.file as Express.Multer.File
 
         if (!newAvatar) {
-            return res.status(400).json({ message: 'Avatar is missing in the request' });
+            throw new ApiError(400, "Avatar is missing in the request")
         }
 
         const response = await uploadOnCloudinary(newAvatar.path)
@@ -111,6 +110,7 @@ export const changeTurfCaptainStatus = (status: $Enums.tcStatus) => {
         })
     }
 }
+
 export const totalGroundPlays = async (req: AuthenticatedRequest, res: Response) => {
 
     await tcResponse(req, res, async () => {

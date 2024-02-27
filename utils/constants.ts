@@ -11,7 +11,7 @@ module.exports.USER_NOT_FOUND = 'User does not exits.';
 
 /* General Errors  constants start */
 module.exports.ROUTE_NOT_FOUND = 'You are at wrong place. Shhoooo...';
-module.exports.SERVER_ERROR_MESSAGE = 'Something bad happend. It\'s not you, it\'s me.';
+export const SERVER_ERROR_MESSAGE = 'Something bad happend. It\'s not you, it\'s me.';
 
 /* HTTP status code constant starts */
 module.exports.SERVER_ERROR_HTTP_CODE = 412;

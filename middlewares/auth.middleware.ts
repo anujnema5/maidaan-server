@@ -24,7 +24,7 @@ export const verifyUser = async (req: AuthenticatedRequest, res: Response, next:
             throw new ApiError(401, "Token Expired")
 
         }
-        return res.status(401).json({ message: "Suspicious activity detected" })
+        throw new ApiError(401, "Suspicious activity detected")
     }
 }
 
@@ -48,6 +48,6 @@ export const verifyTc = async (req: AuthenticatedRequest, res: Response, next: N
             console.log("Token expired")
             throw new ApiError(401, "Token Expired")
         }
-        return res.status(401).json({ message: "Suspicious activity detected, someone is attaching a fake token" })
+        throw new ApiError(401, "Suspicious activity detected, someone is attaching a fake token")
     }
 }

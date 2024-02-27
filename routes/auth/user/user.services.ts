@@ -11,96 +11,94 @@ import 'dotenv/config';
 import { uploadOnCloudinary } from "@/services/cloudinary.utils";
 import { ApiResponse } from "@/utils/ApiResponse.utils";
 import { ApiError } from "@/utils/ApiError.utils";
+import { tryCatchResponse } from "@/utils/handleResponse";
 
 export const signInUser = async (req: Request, res: Response) => {
-    try {
-        // TODO: IMPLEMENT ZOD VALIDATION HERE
+    tryCatchResponse(res, async () => {
+
         const { username, email, password } = req.body;
 
         if (!username && !email) {
-            return res.status(400).json({ message: "Username or email is required" })
+            throw new ApiError(400, "Username or email is required")
+        }
+
+        if (!password) {
+            throw new ApiError(400, "Password is required")
         }
 
         const foundUser = await db.user.findFirst({ where: { username } }) as User
         const isPasswordCorrect = await bcrypt.compare(password, foundUser?.password as string)
 
         if (!isPasswordCorrect) {
-            return res.status(401).json({ message: "You've entered wrong password" })
+            throw new ApiError(401, "You've entered wrong password")
         }
 
         const { accessToken, refreshToken } = await generateAccessRefreshToken(foundUser.id) as any
-
 
         return res.status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
             .json(new ApiResponse(200, accessToken))
-
-
-    } catch (error) {
-        console.log(error);
-        return new ApiError(500, "Something went wrong")
-    }
+    })
 }
 
 export const signUpUser = async (req: Request, res: Response) => {
     const avatar = req.file as Express.Multer.File
+    const { fullName, username, email, password, phoneNumber } = req.body
 
-    try {
-        const { fullName, username, email, password, phoneNumber } = req.body
+    if (!fullName || !username || !email || !password || !phoneNumber) {
+        throw new ApiError(400, "All fields are required")
+    }
+
+    await tryCatchResponse(res, async () => {
 
         const existedUser = await getUserByEmail(email)
 
         if (existedUser) {
-            return res.status(409).send("User already exists");
+            throw new ApiError(409, "You've entered wrong password")
         }
 
-        else {
+        const hashedPassword = await bcrypt.hash(password, 10)
+        // WRAP THE WHOLE PROCESS IN TRANSACTION
+        const newUser = await db.user.create({
+            data: { username, fullName, phoneNumber, email, password: hashedPassword }
+        })
 
-            const hashedPassword = await bcrypt.hash(password, 10)
+        let response = null
+        if (avatar) {
+            response = await uploadOnCloudinary(avatar.path)
+        }
 
-            // WRAP THE WHOLE PROCESS IN TRANSACTION
-            const newUser = await db.user.create({
-                data: { username, fullName, phoneNumber, email, password: hashedPassword }
-            })
-
-            let response = null
-            if (avatar) {
-                response = await uploadOnCloudinary(avatar.path)
+        const account = await db.account.create({
+            data: {
+                userId: newUser.id,
+                avatar: response?.url || null,
             }
+        })
 
-            const account = await db.account.create({
-                data: {
-                    userId: newUser.id,
-                    avatar: response?.url || null,
-                }
-            })
+        const { accessToken, refreshToken } = await generateAccessRefreshToken(newUser.id) as any
 
-            const { accessToken, refreshToken } = await generateAccessRefreshToken(newUser.id) as any
+        return res.status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json(new ApiResponse(200, { user: newUser, account }))
 
+    })
 
-            return res.status(200)
-                .cookie("accessToken", accessToken, options)
-                .cookie("refreshToken", refreshToken, options)
-                .json(new ApiResponse(200, { user: newUser, account }))
-        }
-    } catch (error) {
-        return res.status(400).json({ message: 'Validation failed', errors: error });
-    }
 }
 
 export const userAccessRefershToken = async (req: Request, res: Response) => {
     const incomingrefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
     if (!incomingrefreshToken) {
-        return res.status(401).json({ message: "No refresh token found" })
+        throw new ApiError(401, "No refresh token found")
     }
 
-    try {
+    await tryCatchResponse(res, async () => {
         const decodedToken = jwt.decode(incomingrefreshToken) as any
 
         if (!decodedToken) {
-            return res.status(401).json({ message: "non-valid refresh token" })
+            throw new ApiError(401, "non-valid refresh token")
         }
 
         const foundUser = await db.user.findFirst({
@@ -111,7 +109,7 @@ export const userAccessRefershToken = async (req: Request, res: Response) => {
         })
 
         if (foundUser?.refreshToken !== incomingrefreshToken) {
-            return res.status(401).json({ message: "Token expired or already been used" })
+            throw new ApiError(401, "Token expired or already been used")
         }
 
         const { accessToken, refreshToken } = await generateAccessRefreshToken(foundUser?.id) as any
@@ -121,9 +119,6 @@ export const userAccessRefershToken = async (req: Request, res: Response) => {
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
             .json(new ApiResponse(200, accessToken, "Token refreshed"))
-
-    } catch (error) {
-        return res.status(401).json({ message: "non-valid refresh token", error })
-    }
+    })
 }
 

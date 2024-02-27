@@ -47,7 +47,7 @@ export const tcResponse = async (req: AuthenticatedRequest, res: Response, logic
     }
 }
 
-export const tryCatchHandler = async (res: Response, logic: () => Promise<any>) => {
+export const tryCatchResponse = async (res: Response, logic: () => Promise<any>) => {
     try {
         await logic();
     } catch (error) {

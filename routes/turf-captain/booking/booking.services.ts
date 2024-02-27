@@ -89,13 +89,13 @@ export const verifyOtp = async (req: AuthenticatedRequest, res: Response) => {
         const booking = await getBookingById(bookingId)
 
         if (!booking) {
-            return res.status(401).json({ error: "Booking not found" })
+            throw new ApiError(404, "Booking not found")
         }
 
         const bookingOTP = await db.bookingOTP.findUnique({ where: { bookingId } })
 
         if (bookingOTP?.otp !== otp) {
-            return res.status(400).json({ error: "In-correct OTP" })
+            throw new ApiError(401, "In-correct OTP")
         }
 
         await db.booking.update({
