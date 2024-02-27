@@ -9,12 +9,6 @@
 ## API Routes
 <!-- AUTH ROUTES  -->
 
-<!-- TURF CAPTAIN SIGN-IN -->
-<!-- http://localhost:8500/api/auth/turf-captain/sign-in -->
-
-<!-- TURF CAPTAIN SIGN-UP -->
-<!-- http://localhost:8500/api/auth/turf-captain/sign-up -->
-
 <!-- {
 	"fullName": "anujnema",
 	"username": "anujnema",
@@ -23,10 +17,13 @@
 } -->
 
 <!-- TURF CAPTAIN SIGN-IN -->
-<!-- http://localhost:8500/api/auth/turf-captain/sign-in -->
+<!-- http://localhost:8500/api/auth/tc/sign-in -->
 
 <!-- TURF CAPTAIN SIGN-UP -->
-<!-- http://localhost:8500/api/auth/turf-captain/sign-up -->
+<!-- http://localhost:8500/api/auth/tc/sign-up -->
+
+<!-- TURF CAPTAIN GOOGLE SIGN-IN -->
+<!-- http://localhost:8500/api/auth/tc/google -->
 
 <!-- EDIT TURF-CAPTAIN -->
 <!-- http://localhost:8500/api/turf-captain/edit -->

@@ -8,7 +8,7 @@ import { Request, Response } from "express";
 import { uploadOnCloudinary } from "@/services/cloudinary.utils";
 import { userResponse } from "@/utils/handleResponse";
 
-export const getUserFromID = async (req: AuthenticatedRequest, res: Response) => {
+export const getUser = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user.id || req.params.userId
 
     await userResponse(req, res, async () => {
